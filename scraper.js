@@ -12,7 +12,6 @@ const secretKey = process.env.SECRET_KEY;
 
   const browser = await chromium.launch({ headless: true });
   
-  // TAMBAHAN: Menyamar sebagai manusia menggunakan Google Chrome Windows sungguhan
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
@@ -33,8 +32,10 @@ const secretKey = process.env.SECRET_KEY;
   page.on('request', request => {
     const url = request.url();
     if (url.includes('.m3u8') && url.includes('dmcdn.net')) {
-      console.log('Tertangkap link M3U8:', url);
-      m3u8Url = url;
+      // Manipulasi string: Paksa berapapun resolusi yang ditangkap menjadi 720p
+      const hdUrl = url.replace(/live-\d+\.m3u8/, 'live-720.m3u8');
+      console.log('Tertangkap link M3U8, memutakhirkan ke HD:', hdUrl);
+      m3u8Url = hdUrl;
     }
   });
 
@@ -43,19 +44,12 @@ const secretKey = process.env.SECRET_KEY;
   try {
     await page.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 60000 });
     await page.waitForTimeout(10000); 
-    
-    // PELACAKAN: Mari kita cek kita nyasar ke halaman mana
-    console.log('================ DIAGNOSIS ================');
-    console.log('URL Terakhir:', page.url());
-    console.log('Judul Halaman:', await page.title());
-    console.log('==========================================');
-
   } catch (err) {
-    console.log('Halaman loading lambat.');
+    console.log('Halaman loading lambat, melanjutkan proses...');
   }
 
   if (m3u8Url) {
-    console.log('Mengirim link ke Cloudflare...');
+    console.log('Mengirim link HD ke Cloudflare...');
     const response = await fetch(workerUrl, {
       method: 'POST',
       headers: {
