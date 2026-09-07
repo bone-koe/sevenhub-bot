@@ -1,0 +1,31 @@
+name: Scrape Trans7 M3U8
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: |
+          npm install
+          npx playwright install --with-deps chromium
+
+      - name: Jalankan Scraper
+        env:
+          SESSION_TOKEN: ${{ secrets.SESSION_TOKEN }}
+          WORKER_URL: ${{ secrets.WORKER_URL }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+        run: node scraper.js
