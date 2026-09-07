@@ -29,14 +29,23 @@ const secretKey = process.env.SECRET_KEY;
   page.on('request', request => {
     const url = request.url();
     if (url.includes('.m3u8') && url.includes('dmcdn.net')) {
-      console.log('Tertangkap link M3U8.');
+      console.log('Tertangkap link M3U8:', url);
       m3u8Url = url;
     }
   });
 
   console.log('Membuka Sevenhub...');
-  await page.goto('https://sevenhub.id/live', { waitUntil: 'networkidle' });
-  await page.waitForTimeout(5000); // Tunggu Dailymotion loading
+  
+  try {
+    // Ganti networkidle menjadi domcontentloaded dan naikkan timeout jadi 60 detik
+    await page.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 60000 });
+    
+    // Beri waktu 10 detik agar player video sempat loading dan mengirim link M3U8
+    console.log('Menunggu 10 detik agar video player merespons...');
+    await page.waitForTimeout(10000); 
+  } catch (err) {
+    console.log('Catatan: Halaman loading agak lama, tapi kita cek apakah M3U8 sudah tertangkap...');
+  }
 
   if (m3u8Url) {
     console.log('Mengirim link ke Cloudflare...');
