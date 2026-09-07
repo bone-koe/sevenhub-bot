@@ -10,14 +10,19 @@ const secretKey = process.env.SECRET_KEY;
     process.exit(1);
   }
 
-  const browser = await chromium.launch({ headless: true });
+  // TAMBAHAN: Mengizinkan Autoplay dan Mute Audio
+  const browser = await chromium.launch({ 
+    headless: true,
+    args: [
+      '--autoplay-policy=no-user-gesture-required',
+      '--mute-audio'
+    ]
+  });
   
-  // Menyamar sebagai Chrome Windows
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
   
-  // Inject cookie untuk Trans 7 (Sevenhub)
   await context.addCookies([{
       name: '__Secure-next-auth.session-token',
       value: sessionToken,
@@ -28,7 +33,6 @@ const secretKey = process.env.SECRET_KEY;
       sameSite: 'Lax'
   }]);
 
-  // VARIABEL PENAMPUNG
   let finalTrans7Url = null;
   let finalTransTvUrl = null;
 
@@ -49,11 +53,11 @@ const secretKey = process.env.SECRET_KEY;
     await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 40000 });
     await pageT7.waitForTimeout(5000); 
   } catch (err) {
-    console.log('Timeout Sevenhub, lanjut...');
+    console.log('Halaman memuat lama, lanjut cek link...');
   }
   
   if (finalTrans7Url) console.log('✅ Trans 7 Tertangkap:', finalTrans7Url);
-  await pageT7.close(); // Tutup tab Trans 7
+  await pageT7.close();
 
 
   // ==========================================
@@ -64,7 +68,6 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    // Tangkap link m3u8 dari video.detik.com
     if (url.includes('.m3u8') && url.includes('video.detik.com')) {
       finalTransTvUrl = url;
     }
@@ -72,14 +75,18 @@ const secretKey = process.env.SECRET_KEY;
 
   try {
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    await pageTTV.waitForTimeout(8000); // Tunggu video player Wowza loading
+    
+    // TAMBAHAN: Scroll layar ke bawah (500 pixel) untuk memicu video player
+    console.log('Scroll layar agar video player merespons...');
+    await pageTTV.evaluate(() => window.scrollBy(0, 500));
+    
+    // Tunggu lebih lama agar Wowza Player memuat Token M3U8
+    await pageTTV.waitForTimeout(12000); 
   } catch (err) {
-    console.log('Timeout Detik, lanjut...');
+    console.log('Halaman memuat lama, lanjut cek link...');
   }
 
-  // AMBIL COOKIES DARI BROWSER (Untuk Trans TV)
   const allCookies = await context.cookies();
-  // Filter hanya cookie milik detik.com, lalu jadikan format string key=value;
   const detikCookies = allCookies
     .filter(c => c.domain.includes('detik.com'))
     .map(c => `${c.name}=${c.value}`)
