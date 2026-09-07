@@ -6,12 +6,16 @@ const secretKey = process.env.SECRET_KEY;
 
 (async () => {
   if (!sessionToken || !workerUrl || !secretKey) {
-    console.error("Gagal: Secret keys belum diset di GitHub Settings!");
+    console.error("Gagal: Secret keys belum diset!");
     process.exit(1);
   }
 
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext();
+  
+  // TAMBAHAN: Menyamar sebagai manusia menggunakan Google Chrome Windows sungguhan
+  const context = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  });
   
   await context.addCookies([{
       name: '__Secure-next-auth.session-token',
@@ -37,14 +41,17 @@ const secretKey = process.env.SECRET_KEY;
   console.log('Membuka Sevenhub...');
   
   try {
-    // Ganti networkidle menjadi domcontentloaded dan naikkan timeout jadi 60 detik
     await page.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 60000 });
-    
-    // Beri waktu 10 detik agar player video sempat loading dan mengirim link M3U8
-    console.log('Menunggu 10 detik agar video player merespons...');
     await page.waitForTimeout(10000); 
+    
+    // PELACAKAN: Mari kita cek kita nyasar ke halaman mana
+    console.log('================ DIAGNOSIS ================');
+    console.log('URL Terakhir:', page.url());
+    console.log('Judul Halaman:', await page.title());
+    console.log('==========================================');
+
   } catch (err) {
-    console.log('Catatan: Halaman loading agak lama, tapi kita cek apakah M3U8 sudah tertangkap...');
+    console.log('Halaman loading lambat.');
   }
 
   if (m3u8Url) {
@@ -57,10 +64,9 @@ const secretKey = process.env.SECRET_KEY;
       },
       body: JSON.stringify({ m3u8_url: m3u8Url })
     });
-    
     console.log('Status Worker:', response.status, await response.text());
   } else {
-    console.error('Gagal menemukan link m3u8. Token mungkin expired.');
+    console.error('Gagal menemukan link m3u8.');
   }
 
   await browser.close();
