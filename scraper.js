@@ -10,7 +10,6 @@ const secretKey = process.env.SECRET_KEY;
     process.exit(1);
   }
 
-  // TAMBAHAN: Mengizinkan Autoplay dan Mute Audio
   const browser = await chromium.launch({ 
     headless: true,
     args: [
@@ -35,7 +34,7 @@ const secretKey = process.env.SECRET_KEY;
 
   let finalTrans7Url = null;
   let finalTransTvUrl = null;
-  let finalTrans7DetikUrl = null; // Penampung baru untuk Trans 7 (Detik)
+  let finalTrans7DetikUrl = null; 
 
   // ==========================================
   // TUGAS 1: SCRAPE TRANS 7 (SEVENHUB)
@@ -51,11 +50,14 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    await pageT7.waitForTimeout(5000); 
+    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
-    console.log('Halaman memuat lama, lanjut cek link...');
+    console.log('Timeout buka web, paksa lanjut...');
   }
+  
+  try {
+    await pageT7.waitForTimeout(5000); 
+  } catch(err) {}
   
   if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap:', finalTrans7Url);
   await pageT7.close();
@@ -75,15 +77,18 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    
-    console.log('Scroll layar agar video player merespons...');
-    await pageTTV.evaluate(() => window.scrollBy(0, 500));
-    
-    await pageTTV.waitForTimeout(12000); 
+    // Kurangi timeout goto jadi 25 detik agar tidak membuang waktu action
+    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 25000 });
   } catch (err) {
-    console.log('Halaman memuat lama, lanjut cek link...');
+    console.log('Loading lama, paksa scroll...');
   }
+
+  // Dipisahkan agar TETAP DIEKSEKUSI meskipun loading URL belum 100%
+  console.log('Scroll layar agar video player merespons...');
+  try {
+    await pageTTV.evaluate(() => window.scrollBy(0, 500));
+    await pageTTV.waitForTimeout(12000); 
+  } catch (err) {}
 
   if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap:', finalTransTvUrl);
   await pageTTV.close();
@@ -97,30 +102,29 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    // Menggunakan logika yang sama persis dengan Trans TV
     if (url.includes('.m3u8') && url.includes('video.detik.com')) {
       finalTrans7DetikUrl = url;
     }
   });
 
   try {
-    // Membuka halaman Trans 7 di Detik
-    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    
-    console.log('Scroll layar agar video player merespons...');
-    await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
-    
-    await pageT7Detik.waitForTimeout(12000); 
+    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 25000 });
   } catch (err) {
-    console.log('Halaman memuat lama, lanjut cek link...');
+    console.log('Loading lama, paksa scroll...');
   }
+
+  console.log('Scroll layar agar video player merespons...');
+  try {
+    await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
+    await pageT7Detik.waitForTimeout(12000); 
+  } catch (err) {}
 
   if (finalTrans7DetikUrl) console.log('✅ Trans 7 (Detik) Tertangkap:', finalTrans7DetikUrl);
   await pageT7Detik.close();
 
 
   // ==========================================
-  // AMBIL COOKIES & KIRIM SEMUANYA KE WORKER
+  // AMBIL COOKIES & KIRIM KE WORKER
   // ==========================================
   const allCookies = await context.cookies();
   const detikCookies = allCookies
@@ -132,7 +136,7 @@ const secretKey = process.env.SECRET_KEY;
   const payload = {
     trans7_url: finalTrans7Url,
     transtv_url: finalTransTvUrl,
-    trans7_detik_url: finalTrans7DetikUrl, // Data baru ditambahkan ke payload
+    trans7_detik_url: finalTrans7DetikUrl,
     transtv_cookies: detikCookies
   };
 
