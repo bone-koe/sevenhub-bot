@@ -10,9 +10,13 @@ const secretKey = process.env.SECRET_KEY;
     process.exit(1);
   }
 
+  // TAMBAHAN: Mengizinkan Autoplay dan Mute Audio
   const browser = await chromium.launch({ 
     headless: true,
-    args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio']
+    args: [
+      '--autoplay-policy=no-user-gesture-required',
+      '--mute-audio'
+    ]
   });
   
   const context = await browser.newContext({
@@ -31,13 +35,13 @@ const secretKey = process.env.SECRET_KEY;
 
   let finalTrans7Url = null;
   let finalTransTvUrl = null;
-  let finalTrans7DetikUrl = null; // Penampung baru untuk Trans 7 Detik
 
   // ==========================================
   // TUGAS 1: SCRAPE TRANS 7 (SEVENHUB)
   // ==========================================
   console.log('--- Membuka Trans 7 (Sevenhub) ---');
   const pageT7 = await context.newPage();
+  
   pageT7.on('request', request => {
     const url = request.url();
     if (url.includes('.m3u8') && url.includes('dmcdn.net')) {
@@ -49,9 +53,10 @@ const secretKey = process.env.SECRET_KEY;
     await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 40000 });
     await pageT7.waitForTimeout(5000); 
   } catch (err) {
-    console.log('Timeout Sevenhub, lanjut...');
+    console.log('Halaman memuat lama, lanjut cek link...');
   }
-  if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap');
+  
+  if (finalTrans7Url) console.log('✅ Trans 7 Tertangkap:', finalTrans7Url);
   await pageT7.close();
 
 
@@ -60,71 +65,57 @@ const secretKey = process.env.SECRET_KEY;
   // ==========================================
   console.log('\n--- Membuka Trans TV (Detik) ---');
   const pageTTV = await context.newPage();
+  
   pageTTV.on('request', request => {
     const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('chunklist')) {
+    if (url.includes('.m3u8') && url.includes('video.detik.com')) {
       finalTransTvUrl = url;
     }
   });
 
   try {
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 40000 });
+    
+    // TAMBAHAN: Scroll layar ke bawah (500 pixel) untuk memicu video player
+    console.log('Scroll layar agar video player merespons...');
     await pageTTV.evaluate(() => window.scrollBy(0, 500));
+    
+    // Tunggu lebih lama agar Wowza Player memuat Token M3U8
     await pageTTV.waitForTimeout(12000); 
   } catch (err) {
-    console.log('Timeout Trans TV, lanjut...');
+    console.log('Halaman memuat lama, lanjut cek link...');
   }
-  if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap');
+
+  const allCookies = await context.cookies();
+  const detikCookies = allCookies
+    .filter(c => c.domain.includes('detik.com'))
+    .map(c => `${c.name}=${c.value}`)
+    .join('; ');
+
+  if (finalTransTvUrl) console.log('✅ Trans TV Tertangkap:', finalTransTvUrl);
   await pageTTV.close();
 
 
   // ==========================================
-  // TUGAS 3: SCRAPE TRANS 7 (DETIK)
+  // TUGAS 3: KIRIM SEMUANYA KE WORKER
   // ==========================================
-  console.log('\n--- Membuka Trans 7 (Detik) ---');
-  const pageT7D = await context.newPage();
-  pageT7D.on('request', request => {
-    const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('chunklist')) {
-      finalTrans7DetikUrl = url;
-    }
-  });
-
-  try {
-    await pageT7D.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    await pageT7D.evaluate(() => window.scrollBy(0, 500));
-    await pageT7D.waitForTimeout(12000); 
-  } catch (err) {
-    console.log('Timeout Trans 7 Detik, lanjut...');
-  }
-  if (finalTrans7DetikUrl) console.log('✅ Trans 7 (Detik) Tertangkap');
-  await pageT7D.close();
-
-
-  // ==========================================
-  // AMBIL COOKIES & KIRIM KE WORKER 1
-  // ==========================================
-  const allCookies = await context.cookies();
-  const detikCookies = allCookies
-    .filter(c => c.domain.includes('detik.com'))
-    .filter(c => c.value.length < 100) // Filter cookie sampah
-    .map(c => `${c.name}=${c.value}`)
-    .join('; ');
-
   console.log('\nMengirim data ke Cloudflare...');
   const payload = {
     trans7_url: finalTrans7Url,
     transtv_url: finalTransTvUrl,
-    trans7_detik_url: finalTrans7DetikUrl, // Data baru!
-    transtv_cookies: detikCookies 
+    transtv_cookies: detikCookies
   };
 
   const response = await fetch(workerUrl, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-secret-key': secretKey },
+    headers: {
+      'Content-Type': 'application/json',
+      'x-secret-key': secretKey
+    },
     body: JSON.stringify(payload)
   });
   
-  console.log('Status Worker:', response.status);
+  console.log('Status Worker:', response.status, await response.text());
+
   await browser.close();
 })();
