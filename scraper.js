@@ -21,6 +21,19 @@ const secretKey = process.env.SECRET_KEY;
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
+
+  // ==========================================
+  // FITUR TURBO: BLOKIR GAMBAR & FONT AGAR WEB MEMUAT INSTAN
+  // ==========================================
+  await context.route('**/*', route => {
+    const type = route.request().resourceType();
+    // Blokir gambar dan font untuk menghemat bandwidth & waktu loading
+    if (type === 'image' || type === 'font') {
+      route.abort();
+    } else {
+      route.continue();
+    }
+  });
   
   await context.addCookies([{
       name: '__Secure-next-auth.session-token',
@@ -55,9 +68,7 @@ const secretKey = process.env.SECRET_KEY;
     console.log('Timeout buka web, paksa lanjut...');
   }
   
-  try {
-    await pageT7.waitForTimeout(5000); 
-  } catch(err) {}
+  try { await pageT7.waitForTimeout(5000); } catch(err) {}
   
   if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap:', finalTrans7Url);
   await pageT7.close();
@@ -77,17 +88,21 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    // Kurangi timeout goto jadi 25 detik agar tidak membuang waktu action
+    // Karena gambar diblokir, loading akan sangat cepat
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 25000 });
   } catch (err) {
-    console.log('Loading lama, paksa scroll...');
+    console.log('Loading timeout, memicu paksa...');
   }
 
-  // Dipisahkan agar TETAP DIEKSEKUSI meskipun loading URL belum 100%
-  console.log('Scroll layar agar video player merespons...');
+  console.log('Melakukan Scroll bertahap untuk memicu pemutar video...');
   try {
-    await pageTTV.evaluate(() => window.scrollBy(0, 500));
-    await pageTTV.waitForTimeout(12000); 
+    // Teknik scroll bertahap ke bawah agar script player 100% tereksekusi
+    await pageTTV.evaluate(async () => {
+      window.scrollBy(0, 400);
+      await new Promise(r => setTimeout(r, 1000));
+      window.scrollBy(0, 400);
+    });
+    await pageTTV.waitForTimeout(10000); 
   } catch (err) {}
 
   if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap:', finalTransTvUrl);
@@ -110,13 +125,17 @@ const secretKey = process.env.SECRET_KEY;
   try {
     await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 25000 });
   } catch (err) {
-    console.log('Loading lama, paksa scroll...');
+    console.log('Loading timeout, memicu paksa...');
   }
 
-  console.log('Scroll layar agar video player merespons...');
+  console.log('Melakukan Scroll bertahap untuk memicu pemutar video...');
   try {
-    await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
-    await pageT7Detik.waitForTimeout(12000); 
+    await pageT7Detik.evaluate(async () => {
+      window.scrollBy(0, 400);
+      await new Promise(r => setTimeout(r, 1000));
+      window.scrollBy(0, 400);
+    });
+    await pageT7Detik.waitForTimeout(10000); 
   } catch (err) {}
 
   if (finalTrans7DetikUrl) console.log('✅ Trans 7 (Detik) Tertangkap:', finalTrans7DetikUrl);
