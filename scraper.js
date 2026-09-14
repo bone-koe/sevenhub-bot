@@ -21,15 +21,6 @@ const secretKey = process.env.SECRET_KEY;
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
-
-  await context.route('**/*', route => {
-    const type = route.request().resourceType();
-    if (type === 'image' || type === 'font') {
-      route.abort();
-    } else {
-      route.continue();
-    }
-  });
   
   await context.addCookies([{
       name: '__Secure-next-auth.session-token',
@@ -59,12 +50,12 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 30000 });
+    // Kembali menggunakan timeout 40 detik yang terbukti stabil
+    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 40000 });
+    await pageT7.waitForTimeout(5000); 
   } catch (err) {
-    console.log('Timeout buka web, paksa lanjut...');
+    console.log('Halaman memuat lama, lanjut cek link...');
   }
-  
-  try { await pageT7.waitForTimeout(5000); } catch(err) {}
   
   if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap:', finalTrans7Url);
   await pageT7.close();
@@ -78,27 +69,25 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    // PERBAIKAN: Wajib mengandung kata 'transtv' agar tidak salah tangkap iklan 20detik
+    // Radar Ketat: Wajib ada kata transtv
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('transtv')) {
       finalTransTvUrl = url;
     }
   });
 
   try {
-    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 40000 });
+    console.log('Scroll layar agar video player merespons...');
+    await pageTTV.evaluate(() => window.scrollBy(0, 500));
+    await pageTTV.waitForTimeout(12000); 
   } catch (err) {
-    console.log('Loading timeout, memicu paksa...');
+    console.log('Halaman memuat lama, paksa scroll...');
+    // Jika timeout terjadi, PAKSA scroll tetap dieksekusi
+    try {
+      await pageTTV.evaluate(() => window.scrollBy(0, 500));
+      await pageTTV.waitForTimeout(12000);
+    } catch (e) {}
   }
-
-  console.log('Melakukan Scroll bertahap untuk memicu pemutar video...');
-  try {
-    await pageTTV.evaluate(async () => {
-      window.scrollBy(0, 400);
-      await new Promise(r => setTimeout(r, 1000));
-      window.scrollBy(0, 400);
-    });
-    await pageTTV.waitForTimeout(10000); 
-  } catch (err) {}
 
   if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap:', finalTransTvUrl);
   await pageTTV.close();
@@ -112,27 +101,25 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    // PERBAIKAN: Wajib mengandung kata 'trans7'
+    // Radar Ketat: Wajib ada kata trans7
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('trans7')) {
       finalTrans7DetikUrl = url;
     }
   });
 
   try {
-    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 25000 });
+    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 40000 });
+    console.log('Scroll layar agar video player merespons...');
+    await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
+    await pageT7Detik.waitForTimeout(12000); 
   } catch (err) {
-    console.log('Loading timeout, memicu paksa...');
+    console.log('Halaman memuat lama, paksa scroll...');
+    // Jika timeout terjadi, PAKSA scroll tetap dieksekusi
+    try {
+      await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
+      await pageT7Detik.waitForTimeout(12000);
+    } catch (e) {}
   }
-
-  console.log('Melakukan Scroll bertahap untuk memicu pemutar video...');
-  try {
-    await pageT7Detik.evaluate(async () => {
-      window.scrollBy(0, 400);
-      await new Promise(r => setTimeout(r, 1000));
-      window.scrollBy(0, 400);
-    });
-    await pageT7Detik.waitForTimeout(10000); 
-  } catch (err) {}
 
   if (finalTrans7DetikUrl) console.log('✅ Trans 7 (Detik) Tertangkap:', finalTrans7DetikUrl);
   await pageT7Detik.close();
