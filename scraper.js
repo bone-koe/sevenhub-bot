@@ -14,7 +14,8 @@ const secretKey = process.env.SECRET_KEY;
     headless: true,
     args: [
       '--autoplay-policy=no-user-gesture-required',
-      '--mute-audio'
+      '--mute-audio',
+      '--disable-gpu' // Tambahan agar lebih ringan dan cepat di server GitHub
     ]
   });
   
@@ -55,9 +56,17 @@ const secretKey = process.env.SECRET_KEY;
     console.log('Timeout buka web, paksa lanjut...');
   }
   
-  try { await pageT7.waitForTimeout(4000); } catch(err) {}
+  console.log('Memicu pemutar video Sevenhub...');
+  for (let i = 0; i < 6; i++) {
+      try { 
+          await pageT7.evaluate(() => { window.scrollBy(0, 300); setTimeout(() => window.scrollBy(0, -50), 400); }); 
+      } catch(e) {}
+      await pageT7.waitForTimeout(2000);
+      if (finalTrans7Url) break;
+  }
   
   if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap:', finalTrans7Url);
+  else console.log('❌ Gagal menangkap Trans 7 (Sevenhub)');
   await pageT7.close();
 
 
@@ -69,7 +78,7 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    // RADAR KETAT: Mencegah iklan 20detik nyangkut
+    // RADAR KETAT
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('transtv')) {
       finalTransTvUrl = url;
     }
@@ -81,12 +90,14 @@ const secretKey = process.env.SECRET_KEY;
     console.log('Loading lama, paksa masuk ke eksekusi...');
   }
 
-  console.log('Menyisir halaman ke bawah (Auto-Scroll)...');
-  // Melakukan scroll 350 pixel secara bertahap sebanyak maksimal 6 kali
-  for (let i = 0; i < 6; i++) {
-      try { await pageTTV.evaluate(() => window.scrollBy(0, 350)); } catch(e) {}
-      await pageTTV.waitForTimeout(2000); // Tunggu 2 detik tiap scroll
-      if (finalTransTvUrl) break; // Jika berhasil tertangkap, langsung hentikan scroll
+  console.log('Menyisir halaman ke bawah (Auto-Scroll Turun-Naik)...');
+  // Loop dinaikkan menjadi 8x agar penyisiran lebih dalam dan sabar
+  for (let i = 0; i < 8; i++) {
+      try { 
+          await pageTTV.evaluate(() => { window.scrollBy(0, 400); setTimeout(() => window.scrollBy(0, -100), 500); }); 
+      } catch(e) {}
+      await pageTTV.waitForTimeout(2500); 
+      if (finalTransTvUrl) break; 
   }
 
   if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap:', finalTransTvUrl);
@@ -102,7 +113,7 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    // RADAR KETAT: Mencegah iklan 20detik nyangkut
+    // RADAR KETAT
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('trans7')) {
       finalTrans7DetikUrl = url;
     }
@@ -114,11 +125,12 @@ const secretKey = process.env.SECRET_KEY;
     console.log('Loading lama, paksa masuk ke eksekusi...');
   }
 
-  console.log('Menyisir halaman ke bawah (Auto-Scroll)...');
-  // Melakukan scroll 350 pixel secara bertahap sebanyak maksimal 6 kali
-  for (let i = 0; i < 6; i++) {
-      try { await pageT7Detik.evaluate(() => window.scrollBy(0, 350)); } catch(e) {}
-      await pageT7Detik.waitForTimeout(2000); 
+  console.log('Menyisir halaman ke bawah (Auto-Scroll Turun-Naik)...');
+  for (let i = 0; i < 8; i++) {
+      try { 
+          await pageT7Detik.evaluate(() => { window.scrollBy(0, 400); setTimeout(() => window.scrollBy(0, -100), 500); }); 
+      } catch(e) {}
+      await pageT7Detik.waitForTimeout(2500); 
       if (finalTrans7DetikUrl) break; 
   }
 
@@ -154,6 +166,5 @@ const secretKey = process.env.SECRET_KEY;
   });
   
   console.log('Status Worker:', response.status, await response.text());
-
   await browser.close();
 })();
