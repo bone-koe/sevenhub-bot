@@ -15,12 +15,28 @@ const secretKey = process.env.SECRET_KEY;
     args: [
       '--autoplay-policy=no-user-gesture-required',
       '--mute-audio',
-      '--disable-gpu' // Tambahan agar lebih ringan dan cepat di server GitHub
+      '--disable-gpu',
+      '--window-size=1280,720'
     ]
   });
   
   const context = await browser.newContext({
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    viewport: { width: 1280, height: 720 }
+  });
+
+  // ==========================================
+  // SURGICAL AD-BLOCKER (Blokir Iklan & Tracker)
+  // ==========================================
+  await context.route('**/*', route => {
+    const url = route.request().url();
+    const adDomains = ['doubleclick.net', 'googlesyndication.com', 'google-analytics.com', 'facebook.net', 'facebook.com', 'taboola.com', 'criteo.com', 'outbrain.com', 'tiktok.com'];
+    
+    if (adDomains.some(domain => url.includes(domain))) {
+      route.abort(); // Buang iklan agar loading instan
+    } else {
+      route.continue(); // Biarkan aset asli (termasuk font/gambar detik) memuat
+    }
   });
   
   await context.addCookies([{
@@ -57,10 +73,12 @@ const secretKey = process.env.SECRET_KEY;
   }
   
   console.log('Memicu pemutar video Sevenhub...');
+  try {
+    await pageT7.mouse.click(500, 500); // Klik sembarang untuk fokus
+  } catch(e) {}
+  
   for (let i = 0; i < 6; i++) {
-      try { 
-          await pageT7.evaluate(() => { window.scrollBy(0, 300); setTimeout(() => window.scrollBy(0, -50), 400); }); 
-      } catch(e) {}
+      try { await pageT7.keyboard.press('PageDown'); } catch(e) {}
       await pageT7.waitForTimeout(2000);
       if (finalTrans7Url) break;
   }
@@ -78,23 +96,24 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    // RADAR KETAT
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('transtv')) {
       finalTransTvUrl = url;
     }
   });
 
   try {
+    // Karena iklan diblokir, loading akan jauh lebih cepat
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
     console.log('Loading lama, paksa masuk ke eksekusi...');
   }
 
-  console.log('Menyisir halaman ke bawah (Auto-Scroll Turun-Naik)...');
-  // Loop dinaikkan menjadi 8x agar penyisiran lebih dalam dan sabar
+  console.log('Menyisir halaman menggunakan Keyboard (PageDown)...');
+  try { await pageTTV.mouse.click(500, 500); } catch(e) {} // Fokuskan layar
+  
   for (let i = 0; i < 8; i++) {
       try { 
-          await pageTTV.evaluate(() => { window.scrollBy(0, 400); setTimeout(() => window.scrollBy(0, -100), 500); }); 
+        await pageTTV.keyboard.press('PageDown'); // Simulasi manusia menekan tombol PageDown
       } catch(e) {}
       await pageTTV.waitForTimeout(2500); 
       if (finalTransTvUrl) break; 
@@ -113,7 +132,6 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    // RADAR KETAT
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('trans7')) {
       finalTrans7DetikUrl = url;
     }
@@ -125,10 +143,12 @@ const secretKey = process.env.SECRET_KEY;
     console.log('Loading lama, paksa masuk ke eksekusi...');
   }
 
-  console.log('Menyisir halaman ke bawah (Auto-Scroll Turun-Naik)...');
+  console.log('Menyisir halaman menggunakan Keyboard (PageDown)...');
+  try { await pageT7Detik.mouse.click(500, 500); } catch(e) {} 
+  
   for (let i = 0; i < 8; i++) {
       try { 
-          await pageT7Detik.evaluate(() => { window.scrollBy(0, 400); setTimeout(() => window.scrollBy(0, -100), 500); }); 
+        await pageT7Detik.keyboard.press('PageDown'); 
       } catch(e) {}
       await pageT7Detik.waitForTimeout(2500); 
       if (finalTrans7DetikUrl) break; 
