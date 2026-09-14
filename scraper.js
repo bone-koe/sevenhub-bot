@@ -50,12 +50,12 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    // Kembali menggunakan timeout 40 detik yang terbukti stabil
-    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    await pageT7.waitForTimeout(5000); 
+    await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
-    console.log('Halaman memuat lama, lanjut cek link...');
+    console.log('Timeout buka web, paksa lanjut...');
   }
+  
+  try { await pageT7.waitForTimeout(4000); } catch(err) {}
   
   if (finalTrans7Url) console.log('✅ Trans 7 (Sevenhub) Tertangkap:', finalTrans7Url);
   await pageT7.close();
@@ -69,27 +69,28 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    // Radar Ketat: Wajib ada kata transtv
+    // RADAR KETAT: Mencegah iklan 20detik nyangkut
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('transtv')) {
       finalTransTvUrl = url;
     }
   });
 
   try {
-    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    console.log('Scroll layar agar video player merespons...');
-    await pageTTV.evaluate(() => window.scrollBy(0, 500));
-    await pageTTV.waitForTimeout(12000); 
+    await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
-    console.log('Halaman memuat lama, paksa scroll...');
-    // Jika timeout terjadi, PAKSA scroll tetap dieksekusi
-    try {
-      await pageTTV.evaluate(() => window.scrollBy(0, 500));
-      await pageTTV.waitForTimeout(12000);
-    } catch (e) {}
+    console.log('Loading lama, paksa masuk ke eksekusi...');
+  }
+
+  console.log('Menyisir halaman ke bawah (Auto-Scroll)...');
+  // Melakukan scroll 350 pixel secara bertahap sebanyak maksimal 6 kali
+  for (let i = 0; i < 6; i++) {
+      try { await pageTTV.evaluate(() => window.scrollBy(0, 350)); } catch(e) {}
+      await pageTTV.waitForTimeout(2000); // Tunggu 2 detik tiap scroll
+      if (finalTransTvUrl) break; // Jika berhasil tertangkap, langsung hentikan scroll
   }
 
   if (finalTransTvUrl) console.log('✅ Trans TV (Detik) Tertangkap:', finalTransTvUrl);
+  else console.log('❌ Gagal menangkap Trans TV (Detik)');
   await pageTTV.close();
 
 
@@ -101,27 +102,28 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    // Radar Ketat: Wajib ada kata trans7
+    // RADAR KETAT: Mencegah iklan 20detik nyangkut
     if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('trans7')) {
       finalTrans7DetikUrl = url;
     }
   });
 
   try {
-    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 40000 });
-    console.log('Scroll layar agar video player merespons...');
-    await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
-    await pageT7Detik.waitForTimeout(12000); 
+    await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
-    console.log('Halaman memuat lama, paksa scroll...');
-    // Jika timeout terjadi, PAKSA scroll tetap dieksekusi
-    try {
-      await pageT7Detik.evaluate(() => window.scrollBy(0, 500));
-      await pageT7Detik.waitForTimeout(12000);
-    } catch (e) {}
+    console.log('Loading lama, paksa masuk ke eksekusi...');
+  }
+
+  console.log('Menyisir halaman ke bawah (Auto-Scroll)...');
+  // Melakukan scroll 350 pixel secara bertahap sebanyak maksimal 6 kali
+  for (let i = 0; i < 6; i++) {
+      try { await pageT7Detik.evaluate(() => window.scrollBy(0, 350)); } catch(e) {}
+      await pageT7Detik.waitForTimeout(2000); 
+      if (finalTrans7DetikUrl) break; 
   }
 
   if (finalTrans7DetikUrl) console.log('✅ Trans 7 (Detik) Tertangkap:', finalTrans7DetikUrl);
+  else console.log('❌ Gagal menangkap Trans 7 (Detik)');
   await pageT7Detik.close();
 
 
