@@ -22,12 +22,8 @@ const secretKey = process.env.SECRET_KEY;
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
   });
 
-  // ==========================================
-  // FITUR TURBO: BLOKIR GAMBAR & FONT AGAR WEB MEMUAT INSTAN
-  // ==========================================
   await context.route('**/*', route => {
     const type = route.request().resourceType();
-    // Blokir gambar dan font untuk menghemat bandwidth & waktu loading
     if (type === 'image' || type === 'font') {
       route.abort();
     } else {
@@ -82,13 +78,13 @@ const secretKey = process.env.SECRET_KEY;
   
   pageTTV.on('request', request => {
     const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com')) {
+    // PERBAIKAN: Wajib mengandung kata 'transtv' agar tidak salah tangkap iklan 20detik
+    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('transtv')) {
       finalTransTvUrl = url;
     }
   });
 
   try {
-    // Karena gambar diblokir, loading akan sangat cepat
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 25000 });
   } catch (err) {
     console.log('Loading timeout, memicu paksa...');
@@ -96,7 +92,6 @@ const secretKey = process.env.SECRET_KEY;
 
   console.log('Melakukan Scroll bertahap untuk memicu pemutar video...');
   try {
-    // Teknik scroll bertahap ke bawah agar script player 100% tereksekusi
     await pageTTV.evaluate(async () => {
       window.scrollBy(0, 400);
       await new Promise(r => setTimeout(r, 1000));
@@ -117,7 +112,8 @@ const secretKey = process.env.SECRET_KEY;
   
   pageT7Detik.on('request', request => {
     const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com')) {
+    // PERBAIKAN: Wajib mengandung kata 'trans7'
+    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('trans7')) {
       finalTrans7DetikUrl = url;
     }
   });
