@@ -169,22 +169,29 @@ const secretKey = process.env.SECRET_KEY;
     .join('; ');
 
   console.log('\nMengirim data ke Cloudflare...');
-  const payload = {
-    trans7_url: finalTrans7Url,
-    transtv_url: finalTransTvUrl,
-    trans7_detik_url: finalTrans7DetikUrl,
-    transtv_cookies: detikCookies
-  };
-
-  const response = await fetch(workerUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-secret-key': secretKey
-    },
-    body: JSON.stringify(payload)
-  });
   
-  console.log('Status Worker:', response.status, await response.text());
+  // FITUR KEAMANAN KV: Hanya kirim data yang BERHASIL ditangkap
+  const payload = {};
+  if (finalTrans7Url) payload.trans7_url = finalTrans7Url;
+  if (finalTransTvUrl) payload.transtv_url = finalTransTvUrl;
+  if (finalTrans7DetikUrl) payload.trans7_detik_url = finalTrans7DetikUrl;
+  if (detikCookies) payload.transtv_cookies = detikCookies;
+
+  // Pastikan payload tidak kosong (setidaknya ada 1 link yang sukses dijaring)
+  if (Object.keys(payload).length > 1 || (Object.keys(payload).length === 1 && !payload.transtv_cookies)) {
+    const response = await fetch(workerUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-secret-key': secretKey
+      },
+      body: JSON.stringify(payload)
+    });
+    console.log('Status Worker:', response.status, await response.text());
+  } else {
+    console.log('⚠️ SEMUA URL GAGAL DIJARING PADA SESI INI.');
+    console.log('🛡️ MENGABAIKAN UPDATE: Data lama di KV Worker aman dan tetap dipertahankan.');
+  }
+
   await browser.close();
 })();
