@@ -76,7 +76,7 @@ const secretKey = process.env.SECRET_KEY;
   
   console.log('Memicu pemutar video Sevenhub...');
   try {
-    await pageT7.mouse.click(500, 500); // Klik sembarang untuk fokus
+    await pageT7.mouse.click(500, 500); 
   } catch(e) {}
   
   for (let i = 0; i < 6; i++) {
@@ -104,19 +104,16 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   try {
-    // Karena iklan diblokir, loading akan jauh lebih cepat
     await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 30000 });
   } catch (err) {
     console.log('Loading lama, paksa masuk ke eksekusi...');
   }
 
   console.log('Menyisir halaman menggunakan Keyboard (PageDown)...');
-  try { await pageTTV.mouse.click(500, 500); } catch(e) {} // Fokuskan layar
+  try { await pageTTV.mouse.click(500, 500); } catch(e) {} 
   
   for (let i = 0; i < 8; i++) {
-      try { 
-        await pageTTV.keyboard.press('PageDown'); // Simulasi manusia menekan tombol PageDown
-      } catch(e) {}
+      try { await pageTTV.keyboard.press('PageDown'); } catch(e) {}
       await pageTTV.waitForTimeout(2500); 
       if (finalTransTvUrl) break; 
   }
@@ -149,9 +146,7 @@ const secretKey = process.env.SECRET_KEY;
   try { await pageT7Detik.mouse.click(500, 500); } catch(e) {} 
   
   for (let i = 0; i < 8; i++) {
-      try { 
-        await pageT7Detik.keyboard.press('PageDown'); 
-      } catch(e) {}
+      try { await pageT7Detik.keyboard.press('PageDown'); } catch(e) {}
       await pageT7Detik.waitForTimeout(2500); 
       if (finalTrans7DetikUrl) break; 
   }
@@ -169,7 +164,8 @@ const secretKey = process.env.SECRET_KEY;
   
   pageCNN.on('request', request => {
     const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('cnn')) {
+    // PERBAIKAN: Dihapus batasan video.detik.com agar link asli cnnindonesia.com bisa masuk
+    if (url.includes('.m3u8') && url.includes('cnn')) {
       finalCnnUrl = url;
     }
   });
@@ -202,7 +198,8 @@ const secretKey = process.env.SECRET_KEY;
   
   pageCNBC.on('request', request => {
     const url = request.url();
-    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('cnbc')) {
+    // PERBAIKAN: Dihapus batasan video.detik.com agar link asli cnbcindonesia.com bisa masuk
+    if (url.includes('.m3u8') && url.includes('cnbc')) {
       finalCnbcUrl = url;
     }
   });
