@@ -56,14 +56,16 @@ const secretKey = process.env.SECRET_KEY;
   let finalCnbcUrl = null;
 
   // ==========================================
-  // FUNGSI HELPER: KLIK & SCROLL AGRESIF
+  // FUNGSI HELPER: KLIK & SCROLL AGRESIF ANTI-CRASH
   // ==========================================
   async function triggerVideo(page, getUrlValue) {
     // Klik sembarang di tengah layar memicu pemutar video yang tertidur
     try { await page.mouse.click(500, 500); } catch(e) {}
     for (let i = 0; i < 8; i++) {
-        await page.evaluate(() => window.scrollBy(0, 400));
+        // PERBAIKAN: Dibungkus try-catch agar kebal terhadap "Execution context was destroyed"
+        try { await page.evaluate(() => window.scrollBy(0, 400)); } catch(e) {}
         try { await page.keyboard.press('PageDown'); } catch(e) {}
+        
         await page.waitForTimeout(2500); 
         if (getUrlValue()) break; 
     }
