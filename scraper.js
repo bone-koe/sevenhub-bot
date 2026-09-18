@@ -26,7 +26,7 @@ const secretKey = process.env.SECRET_KEY;
   });
 
   // ==========================================
-  // SURGICAL AD-BLOCKER (Blokir Iklan & Tracker)
+  // SURGICAL AD-BLOCKER
   // ==========================================
   await context.route('**/*', route => {
     const url = route.request().url();
@@ -56,11 +56,14 @@ const secretKey = process.env.SECRET_KEY;
   let finalCnbcUrl = null;
 
   // ==========================================
-  // FUNGSI HELPER: NATIVE SCROLL
+  // FUNGSI HELPER: KLIK & SCROLL AGRESIF
   // ==========================================
   async function triggerVideo(page, getUrlValue) {
+    // Klik sembarang di tengah layar memicu pemutar video yang tertidur
+    try { await page.mouse.click(500, 500); } catch(e) {}
     for (let i = 0; i < 8; i++) {
-        await page.evaluate(() => window.scrollBy(0, 500));
+        await page.evaluate(() => window.scrollBy(0, 400));
+        try { await page.keyboard.press('PageDown'); } catch(e) {}
         await page.waitForTimeout(2500); 
         if (getUrlValue()) break; 
     }
@@ -72,9 +75,8 @@ const secretKey = process.env.SECRET_KEY;
   console.log('--- Membuka Trans 7 (Sevenhub) ---');
   const pageT7 = await context.newPage();
   pageT7.on('request', request => {
-    const url = request.url();
-    if (url.includes('.m3u8') && url.includes('dmcdn.net')) {
-      finalTrans7Url = url.replace(/live-\d+\.m3u8/, 'live-720.m3u8');
+    if (request.url().includes('.m3u8') && request.url().includes('dmcdn.net')) {
+      finalTrans7Url = request.url().replace(/live-\d+\.m3u8/, 'live-720.m3u8');
     }
   });
   try { await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
@@ -91,9 +93,7 @@ const secretKey = process.env.SECRET_KEY;
   console.log('\n--- Membuka Trans TV (Detik) ---');
   const pageTTV = await context.newPage();
   pageTTV.on('request', request => {
-    const url = request.url().toLowerCase();
-    // RADAR KETAT: Mencegah iklan 20detik masuk
-    if (url.includes('.m3u8') && url.includes('transtv')) finalTransTvUrl = request.url();
+    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('transtv')) finalTransTvUrl = request.url();
   });
   try { await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageTTV, () => finalTransTvUrl);
@@ -109,8 +109,7 @@ const secretKey = process.env.SECRET_KEY;
   console.log('\n--- Membuka Trans 7 (Detik) ---');
   const pageT7Detik = await context.newPage();
   pageT7Detik.on('request', request => {
-    const url = request.url().toLowerCase();
-    if (url.includes('.m3u8') && url.includes('trans7')) finalTrans7DetikUrl = request.url();
+    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('trans7')) finalTrans7DetikUrl = request.url();
   });
   try { await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageT7Detik, () => finalTrans7DetikUrl);
@@ -121,15 +120,14 @@ const secretKey = process.env.SECRET_KEY;
 
 
   // ==========================================
-  // TUGAS 4: SCRAPE CNN INDONESIA
+  // TUGAS 4: SCRAPE CNN INDONESIA (URL ASLI)
   // ==========================================
   console.log('\n--- Membuka CNN Indonesia ---');
   const pageCNN = await context.newPage();
   pageCNN.on('request', request => {
-    const url = request.url().toLowerCase();
-    if (url.includes('.m3u8') && url.includes('cnn')) finalCnnUrl = request.url();
+    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('cnn')) finalCnnUrl = request.url();
   });
-  try { await pageCNN.goto('https://20.detik.com/live/cnn-tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
+  try { await pageCNN.goto('https://www.cnnindonesia.com/tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageCNN, () => finalCnnUrl);
 
   if (finalCnnUrl) console.log('✅ CNN Indonesia Tertangkap:', finalCnnUrl);
@@ -138,15 +136,14 @@ const secretKey = process.env.SECRET_KEY;
 
 
   // ==========================================
-  // TUGAS 5: SCRAPE CNBC INDONESIA
+  // TUGAS 5: SCRAPE CNBC INDONESIA (URL ASLI)
   // ==========================================
   console.log('\n--- Membuka CNBC Indonesia ---');
   const pageCNBC = await context.newPage();
   pageCNBC.on('request', request => {
-    const url = request.url().toLowerCase();
-    if (url.includes('.m3u8') && url.includes('cnbc')) finalCnbcUrl = request.url();
+    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('cnbc')) finalCnbcUrl = request.url();
   });
-  try { await pageCNBC.goto('https://20.detik.com/live/cnbc-tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
+  try { await pageCNBC.goto('https://www.cnbcindonesia.com/tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageCNBC, () => finalCnbcUrl);
 
   if (finalCnbcUrl) console.log('✅ CNBC Indonesia Tertangkap:', finalCnbcUrl);
