@@ -56,15 +56,31 @@ const secretKey = process.env.SECRET_KEY;
   let finalCnbcUrl = null;
 
   // ==========================================
-  // FUNGSI HELPER: KLIK & SCROLL AGRESIF ANTI-CRASH
+  // FUNGSI HELPER: SCROLL PERLAHAN (Mencegah Player Keluar Layar)
   // ==========================================
   async function triggerVideo(page, getUrlValue) {
-    // Klik sembarang di tengah layar memicu pemutar video yang tertidur
-    try { await page.mouse.click(500, 500); } catch(e) {}
+    // 1. Beri waktu sejenak agar script pemutar video web termuat sempurna
+    await page.waitForTimeout(3000);
+
+    // 2. Klik perlahan di area tengah-atas (Posisi umum player CNN/CNBC)
+    try { await page.mouse.click(640, 250); } catch(e) {}
+
+    // 3. Paksa Play melalui JavaScript (jika tag video sudah dirender)
+    try {
+        await page.evaluate(() => {
+            document.querySelectorAll('video').forEach(v => { try { v.play() } catch(e) {} });
+        });
+    } catch(e) {}
+
+    // 4. Turun sangat perlahan agar lazy-load aktif, tapi video tidak terlewat
     for (let i = 0; i < 8; i++) {
-        // PERBAIKAN: Dibungkus try-catch agar kebal terhadap "Execution context was destroyed"
-        try { await page.evaluate(() => window.scrollBy(0, 400)); } catch(e) {}
-        try { await page.keyboard.press('PageDown'); } catch(e) {}
+        try { 
+            // Turun 150px, lalu naik 50px (Efek goyang simulasi manusia)
+            await page.evaluate(() => {
+                window.scrollBy(0, 150);
+                setTimeout(() => window.scrollBy(0, -50), 500);
+            }); 
+        } catch(e) {}
         
         await page.waitForTimeout(2500); 
         if (getUrlValue()) break; 
@@ -122,7 +138,7 @@ const secretKey = process.env.SECRET_KEY;
 
 
   // ==========================================
-  // TUGAS 4: SCRAPE CNN INDONESIA (URL ASLI)
+  // TUGAS 4: SCRAPE CNN INDONESIA
   // ==========================================
   console.log('\n--- Membuka CNN Indonesia ---');
   const pageCNN = await context.newPage();
@@ -138,7 +154,7 @@ const secretKey = process.env.SECRET_KEY;
 
 
   // ==========================================
-  // TUGAS 5: SCRAPE CNBC INDONESIA (URL ASLI)
+  // TUGAS 5: SCRAPE CNBC INDONESIA
   // ==========================================
   console.log('\n--- Membuka CNBC Indonesia ---');
   const pageCNBC = await context.newPage();
