@@ -54,25 +54,12 @@ const secretKey = process.env.SECRET_KEY;
   let finalTrans7DetikUrl = null; 
 
   // ==========================================
-  // FUNGSI HELPER: SCROLL PERLAHAN
+  // FUNGSI HELPER: NATIVE SCROLL (VERSI YANG BERHASIL)
   // ==========================================
   async function triggerVideo(page, getUrlValue) {
-    await page.waitForTimeout(3000);
-    try { await page.mouse.click(640, 250); } catch(e) {}
-    try {
-        await page.evaluate(() => {
-            document.querySelectorAll('video').forEach(v => { try { v.play() } catch(e) {} });
-        });
-    } catch(e) {}
-
     for (let i = 0; i < 8; i++) {
-        try { 
-            await page.evaluate(() => {
-                window.scrollBy(0, 150);
-                setTimeout(() => window.scrollBy(0, -50), 500);
-            }); 
-        } catch(e) {}
-        
+        // Scroll 500px yang terbukti ampuh memicu lazy-load Detik
+        try { await page.evaluate(() => window.scrollBy(0, 500)); } catch(e) {}
         await page.waitForTimeout(2500); 
         if (getUrlValue()) break; 
     }
@@ -84,8 +71,9 @@ const secretKey = process.env.SECRET_KEY;
   console.log('--- Membuka Trans 7 (Sevenhub) ---');
   const pageT7 = await context.newPage();
   pageT7.on('request', request => {
-    if (request.url().includes('.m3u8') && request.url().includes('dmcdn.net')) {
-      finalTrans7Url = request.url().replace(/live-\d+\.m3u8/, 'live-720.m3u8');
+    const url = request.url();
+    if (url.includes('.m3u8') && url.includes('dmcdn.net')) {
+      finalTrans7Url = url.replace(/live-\d+\.m3u8/, 'live-720.m3u8');
     }
   });
   try { await pageT7.goto('https://sevenhub.id/live', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
@@ -102,7 +90,9 @@ const secretKey = process.env.SECRET_KEY;
   console.log('\n--- Membuka Trans TV (Detik) ---');
   const pageTTV = await context.newPage();
   pageTTV.on('request', request => {
-    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('transtv')) finalTransTvUrl = request.url();
+    const url = request.url().toLowerCase();
+    // Radar Ketat: Mencegah iklan 20detik masuk
+    if (url.includes('.m3u8') && url.includes('transtv')) finalTransTvUrl = request.url();
   });
   try { await pageTTV.goto('https://20.detik.com/live/trans-tv', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageTTV, () => finalTransTvUrl);
@@ -118,7 +108,9 @@ const secretKey = process.env.SECRET_KEY;
   console.log('\n--- Membuka Trans 7 (Detik) ---');
   const pageT7Detik = await context.newPage();
   pageT7Detik.on('request', request => {
-    if (request.url().toLowerCase().includes('.m3u8') && request.url().toLowerCase().includes('trans7')) finalTrans7DetikUrl = request.url();
+    const url = request.url().toLowerCase();
+    // Radar Ketat: Mencegah iklan 20detik masuk
+    if (url.includes('.m3u8') && url.includes('trans7')) finalTrans7DetikUrl = request.url();
   });
   try { await pageT7Detik.goto('https://20.detik.com/live/trans-7', { waitUntil: 'domcontentloaded', timeout: 30000 }); } catch (err) {}
   await triggerVideo(pageT7Detik, () => finalTrans7DetikUrl);
