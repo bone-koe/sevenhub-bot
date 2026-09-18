@@ -52,6 +52,8 @@ const secretKey = process.env.SECRET_KEY;
   let finalTrans7Url = null;
   let finalTransTvUrl = null;
   let finalTrans7DetikUrl = null; 
+  let finalCnnUrl = null;
+  let finalCnbcUrl = null;
 
   // ==========================================
   // TUGAS 1: SCRAPE TRANS 7 (SEVENHUB)
@@ -160,6 +162,72 @@ const secretKey = process.env.SECRET_KEY;
 
 
   // ==========================================
+  // TUGAS 4: SCRAPE CNN INDONESIA
+  // ==========================================
+  console.log('\n--- Membuka CNN Indonesia ---');
+  const pageCNN = await context.newPage();
+  
+  pageCNN.on('request', request => {
+    const url = request.url();
+    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('cnn')) {
+      finalCnnUrl = url;
+    }
+  });
+
+  try {
+    await pageCNN.goto('https://20.detik.com/live/cnn-tv', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  } catch (err) {
+    console.log('Loading lama, paksa masuk ke eksekusi...');
+  }
+
+  console.log('Menyisir halaman menggunakan Keyboard (PageDown)...');
+  try { await pageCNN.mouse.click(500, 500); } catch(e) {} 
+  
+  for (let i = 0; i < 8; i++) {
+      try { await pageCNN.keyboard.press('PageDown'); } catch(e) {}
+      await pageCNN.waitForTimeout(2500); 
+      if (finalCnnUrl) break; 
+  }
+
+  if (finalCnnUrl) console.log('✅ CNN Indonesia Tertangkap:', finalCnnUrl);
+  else console.log('❌ Gagal menangkap CNN Indonesia');
+  await pageCNN.close();
+
+
+  // ==========================================
+  // TUGAS 5: SCRAPE CNBC INDONESIA
+  // ==========================================
+  console.log('\n--- Membuka CNBC Indonesia ---');
+  const pageCNBC = await context.newPage();
+  
+  pageCNBC.on('request', request => {
+    const url = request.url();
+    if (url.includes('.m3u8') && url.includes('video.detik.com') && url.includes('cnbc')) {
+      finalCnbcUrl = url;
+    }
+  });
+
+  try {
+    await pageCNBC.goto('https://20.detik.com/live/cnbc-tv', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  } catch (err) {
+    console.log('Loading lama, paksa masuk ke eksekusi...');
+  }
+
+  console.log('Menyisir halaman menggunakan Keyboard (PageDown)...');
+  try { await pageCNBC.mouse.click(500, 500); } catch(e) {} 
+  
+  for (let i = 0; i < 8; i++) {
+      try { await pageCNBC.keyboard.press('PageDown'); } catch(e) {}
+      await pageCNBC.waitForTimeout(2500); 
+      if (finalCnbcUrl) break; 
+  }
+
+  if (finalCnbcUrl) console.log('✅ CNBC Indonesia Tertangkap:', finalCnbcUrl);
+  else console.log('❌ Gagal menangkap CNBC Indonesia');
+  await pageCNBC.close();
+
+
+  // ==========================================
   // AMBIL COOKIES & KIRIM KE WORKER
   // ==========================================
   const allCookies = await context.cookies();
@@ -175,6 +243,8 @@ const secretKey = process.env.SECRET_KEY;
   if (finalTrans7Url) payload.trans7_url = finalTrans7Url;
   if (finalTransTvUrl) payload.transtv_url = finalTransTvUrl;
   if (finalTrans7DetikUrl) payload.trans7_detik_url = finalTrans7DetikUrl;
+  if (finalCnnUrl) payload.cnn_url = finalCnnUrl;
+  if (finalCnbcUrl) payload.cnbc_url = finalCnbcUrl;
   if (detikCookies) payload.transtv_cookies = detikCookies;
 
   // Pastikan payload tidak kosong (setidaknya ada 1 link yang sukses dijaring)
