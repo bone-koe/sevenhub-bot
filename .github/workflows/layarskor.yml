@@ -1,7 +1,13 @@
 name: Scraper LayarSkor
 
 on:
+  # Hanya bisa dijalankan secara manual (tombol Run workflow) 
+  # atau dipicu secara eksternal melalui GitHub API (Cron Eksternal)
   workflow_dispatch: 
+
+# Memberikan izin kepada bot untuk melakukan Push file ke repository
+permissions:
+  contents: write
 
 jobs:
   scrape-and-push:
@@ -29,5 +35,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add layarskor.m3u
-          git commit -m "Update otomatis jadwal LayarSkor M3U8" || exit 0
+          git commit -m "Update M3U8 LayarSkor (Dipicu Cron Eksternal)" || exit 0
           git push
