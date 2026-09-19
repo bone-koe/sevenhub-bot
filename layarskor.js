@@ -12,7 +12,7 @@ const fs = require('fs');
   console.log('Mengunjungi halaman utama LayarSkor...');
   await page.goto('https://linklayarskortv.courses/', { waitUntil: 'networkidle', timeout: 60000 });
 
-  // 1. Ambil semua elemen link pertandingan di beranda beserta Judul dan Liganya
+  // 1. Ambil semua pertandingan
   console.log('Mencari daftar jadwal pertandingan...');
   let matches = await page.$$eval('a[href^="/watch/rb-"]', nodes => {
     return nodes.map(n => {
@@ -20,15 +20,12 @@ const fs = require('fs');
       let title = "";
       let league = "";
 
-      // Mode 1: Coba cari dari atribut title (biasanya ada di menu sidebar)
       const titleSpan = n.querySelector('span[title]');
       if (titleSpan) {
         title = titleSpan.getAttribute('title');
         const leagueSpan = n.querySelector('.truncate');
         if (leagueSpan) league = leagueSpan.innerText.trim();
-      } 
-      // Mode 2: Cari dari Card Grid Utama
-      else {
+      } else {
         const teamSpans = n.querySelectorAll('span.block.break-words.line-clamp-1');
         if (teamSpans.length >= 2) {
            title = `${teamSpans[0].innerText.trim()} vs ${teamSpans[1].innerText.trim()}`;
@@ -43,33 +40,34 @@ const fs = require('fs');
     });
   });
 
-  // Hapus duplikat URL
   matches = [...new Map(matches.map(item => [item.url, item])).values()];
   console.log(`Ditemukan total ${matches.length} pertandingan di beranda.`);
 
   // -----------------------------------------------------------
-  // FILTER SUPER KETAT: HANYA LIGA INDONESIA
+  // FILTER SUPER AKURAT: LIGA INDONESIA
   // -----------------------------------------------------------
   matches = matches.filter(match => {
     const searchString = (match.league + " " + match.title).toLowerCase();
-    return searchString.includes('indonesi') || // Meng-cover "Indonesian Championship"
-           searchString.includes('liga 1') || 
-           searchString.includes('liga 2') ||
-           searchString.includes('persib') ||
-           searchString.includes('persija');
+    
+    // Harus secara eksplisit menyebut Indonesia
+    const isIndoLeague = searchString.includes('indonesi');
+    
+    // Atau nama Klub Liga 1 / Liga 2
+    const isIndoClub = searchString.match(/persib|persija|persebaya|arema|psm makassar|bali united|persis|psis|borneo|bhayangkara|rans nusantara|dewa united|persita|persik|barito|madura|psms|sriwijaya/i);
+    
+    return isIndoLeague || isIndoClub;
   });
 
   console.log(`====================================================`);
   console.log(`🎯 Mengerucut menjadi ${matches.length} pertandingan LIGA INDONESIA.`);
   console.log(`====================================================`);
 
-  // 2. Buka satu per satu HANYA untuk pertandingan Indonesia yang terpilih
+  // 2. Buka dan Cegat M3U8
   for (let i = 0; i < matches.length; i++) {
     const match = matches[i];
     console.log(`\n[${i + 1}/${matches.length}] Membuka: ${match.title} (${match.league})`);
     
     try {
-      // Fungsi pendeteksi M3U8 dari lalu lintas jaringan
       const requestHandler = (request) => {
         const reqUrl = request.url();
         if (reqUrl.includes('.m3u8')) {
@@ -79,24 +77,38 @@ const fs = require('fs');
       
       page.on('request', requestHandler);
       await page.goto(match.url, { waitUntil: 'load', timeout: 30000 });
+      await page.waitForTimeout(3000); // Tunggu rangka web muncul
       
-      // Tunggu 8 detik (diperpanjang sedikit agar aman menangkap m3u8)
-      await page.waitForTimeout(8000); 
+      // AUTO CLICKER: Mencari kotak Iframe video lalu mengklik tengah layarnya
+      // Ini penting untuk "membangunkan" pemutar video bajakan yang butuh di-klik
+      try {
+        const iframe = await page.$('iframe');
+        if (iframe) {
+            console.log('  --> Iframe ditemukan, mencoba klik untuk memancing video...');
+            const box = await iframe.boundingBox();
+            if(box) await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+        }
+      } catch (e) {
+        // Abaikan jika tidak ada iframe
+      }
+
+      // Tunggu sisa waktu loading untuk mencegat request
+      await page.waitForTimeout(7000); 
       page.off('request', requestHandler);
 
       if (match.m3u8) {
         console.log(`  ✅ Sukses! M3U8 ditangkap.`);
       } else {
-        console.log(`  ❌ Gagal (Mungkin belum mulai / butuh play manual / tidak ada siaran).`);
+        console.log(`  ❌ Gagal (Pertandingan mungkin belum mulai / server mati).`);
       }
     } catch (e) {
-      console.log(`  ⚠️ Error membuka halaman: ${e.message}`);
+      console.log(`  ⚠️ Error membuka halaman.`);
     }
   }
 
   await browser.close();
 
-  // 3. Susun menjadi file M3U murni
+  // 3. Susun File
   console.log('\nMenyusun file M3U...');
   let m3uContent = "#EXTM3U\n";
   let count = 0;
@@ -111,13 +123,11 @@ const fs = require('fs');
     }
   }
 
-  // Fallback jika kosong
   if (count === 0) {
       m3uContent += `#EXTINF:-1 group-title="Info",Tidak ada Siaran Liga Indonesia saat ini\n`;
       m3uContent += `https://raw.githubusercontent.com/tsender57-dotcom/offline/refs/heads/main/logo/offline.m3u8\n`;
   }
 
-  // Tulis hasilnya menjadi file 'layarskor.m3u'
   fs.writeFileSync('layarskor.m3u', m3uContent);
-  console.log(`\n🎉 Selesai! Berhasil menyimpan ${count} link M3U8 ke layarskor.m3u.`);
+  console.log(`\n🎉 Selesai! Berhasil menyimpan ${count} link M3U8.`);
 })();
