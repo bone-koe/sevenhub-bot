@@ -143,7 +143,7 @@ const sessionToken = process.env.SESSION_TOKEN;
   let m3uContent = '#EXTM3U\n\n';
 
   for (const ch of channels) {
-      m3uContent += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name}\n`;
+      m3uContent += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
       m3uContent += `#KODIPROP:inputstream.adaptive.manifest_type=dash\n`;
       m3uContent += `#KODIPROP:inputstream.adaptive.license_type=clearkey\n`;
       m3uContent += `#KODIPROP:inputstream.adaptive.license_key=6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9\n`;
