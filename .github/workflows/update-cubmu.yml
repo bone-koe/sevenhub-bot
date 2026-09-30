@@ -1,7 +1,7 @@
 name: Auto Update Cubmu M3U
 
 on:
-  workflow_dispatch: # Mengizinkan eksekusi manual via tombol Run Workflow
+  workflow_dispatch: # Mengizinkan eksekusi via pihak ketiga (cron-job.org)
 
 jobs:
   update-m3u:
@@ -24,11 +24,9 @@ jobs:
           npx playwright install chromium --with-deps
 
       - name: Run Scraper (cubmu.js)
-        env:
-          SESSION_TOKEN: ${{ secrets.SESSION_TOKEN }} # Opsional jika Cubmu butuh login, set dari GitHub Settings > Secrets
         run: node cubmu.js
 
-      - name: Commit & Push Changes ke Repository
+      - name: Commit & Push Changes
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
