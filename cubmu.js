@@ -37,7 +37,7 @@ const sessionToken = process.env.SESSION_TOKEN;
   await page.goto('https://www.cubmu.com/watch/live-tv/201-trans-7', { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(()=>{});
   
   // Tunggu maksimal 10 detik atau sampai baseUrl didapat
-  for(let i=0; i<10; i++){
+  for(let i=0; i<30; i++){
       await page.waitForTimeout(1000);
       if(baseUrl) break;
   }
