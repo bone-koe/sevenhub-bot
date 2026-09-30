@@ -1,8 +1,6 @@
 name: Auto Update Cubmu M3U
 
 on:
-  schedule:
-    - cron: '0 * * * *' # Berjalan otomatis menit ke-0 setiap jam
   workflow_dispatch: # Mengizinkan eksekusi manual via tombol Run Workflow
 
 jobs:
