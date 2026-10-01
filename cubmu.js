@@ -33,35 +33,33 @@ const sessionToken = process.env.SESSION_TOKEN;
     }
   });
 
-  // Sistem Cadangan (Coba beberapa channel untuk memancing token)
+  // Sistem Cadangan (Tahan Banting) - Fokus ke Channel Berita Gratis yang tidak dikunci Premium
   const fallbackUrls = [
-      'https://www.cubmu.com/watch/live-tv/201-trans-7',
-      'https://www.cubmu.com/watch/live-tv/210-trans-tv',
-      'https://www.cubmu.com/watch/live-tv/211-cnn-indonesia'
+      'https://www.cubmu.com/watch/live-tv/211-cnn-indonesia',
+      'https://www.cubmu.com/watch/live-tv/213-cnbc-indonesia',
+      'https://www.cubmu.com/watch/live-tv/211-metro-tv',
+      'https://www.cubmu.com/watch/live-tv/363-tvone'
   ];
 
   for (let url of fallbackUrls) {
       console.log(`\nMencoba memancing token dari: ${url}`);
       await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 }).catch(()=>{});
       
-      // Tunggu maksimal 20 detik per channel
-      for(let i=0; i<20; i++){
+      // Tunggu maksimal 15 detik per channel
+      for(let i=0; i<15; i++){
           await page.waitForTimeout(1000);
           if(baseUrl) break;
       }
       
-      if (baseUrl) {
-          break; // Langsung stop pencarian kalau token sudah dapat!
-      } else {
-          console.log(`[-] Gagal mendapatkan token dari ${url}, mencoba channel lain...`);
-      }
+      if (baseUrl) break; // Token didapat, langsung keluar dari loop pancingan
+      console.log(`[-] Gagal mendapatkan token dari ${url}, mencoba channel lain...`);
   }
   
   await page.close();
   await browser.close();
 
   if (!baseUrl) {
-      console.error('❌ GAGAL FATAL: Server GitHub Actions terlalu lambat atau Cubmu sedang maintenance.');
+      console.error('❌ GAGAL FATAL: Server Cubmu tidak merespons atau sedang maintenance.');
       process.exit(1);
   }
 
@@ -144,12 +142,23 @@ const sessionToken = process.env.SESSION_TOKEN;
 
   for (const ch of channels) {
       m3uContent += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
-      m3uContent += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
-      m3uContent += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
-      m3uContent += `#KODIPROP:inputstream.adaptive.license_key=6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9\n`;
-      m3uContent += `${baseUrl}${ch.code}/manifest.mpd\n\n`;
+      
+      // Subsidi Silang Khusus Trans TV & Trans 7 (Menggunakan Server Publik TransCorp tanpa DRM)
+      if (ch.name === "Trans TV") {
+          m3uContent += `https://d361n9r80tyx7y.cloudfront.net/out/v1/4b901b5a5bfa4a6d82c2356ce5ba1e4d/index.m3u8\n\n`;
+      } 
+      else if (ch.name === "Trans 7") {
+          m3uContent += `https://d361n9r80tyx7y.cloudfront.net/out/v1/a29cc88a442a4a75be4120349b29ddfe/index.m3u8\n\n`;
+      } 
+      // Sisa 55 Channel lainnya pakai server Cubmu & Token Kunci
+      else {
+          m3uContent += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
+          m3uContent += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
+          m3uContent += `#KODIPROP:inputstream.adaptive.license_key=6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9\n`;
+          m3uContent += `${baseUrl}${ch.code}/manifest.mpd\n\n`;
+      }
   }
 
   fs.writeFileSync('cubmu.m3u', m3uContent);
-  console.log(`✅ File cubmu.m3u berhasil dibuat! (Kecepatan Kilat)`);
+  console.log(`✅ File cubmu.m3u berhasil dibuat! (Kecepatan Kilat & Tahan Banting)`);
 })();
