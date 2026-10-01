@@ -4,7 +4,7 @@ const fs = require('fs');
 const sessionToken = process.env.SESSION_TOKEN; 
 
 (async () => {
-  console.log('--- Memulai Scraping Cepat (Pencurian Token CDN) ---');
+  console.log('--- Memulai Scraping Cepat (Pencurian Token CDN dari CNN) ---');
   const browser = await chromium.launch({ 
     headless: true, 
     args: ['--autoplay-policy=no-user-gesture-required', '--mute-audio', '--disable-gpu', '--no-sandbox'] 
@@ -33,7 +33,7 @@ const sessionToken = process.env.SESSION_TOKEN;
     }
   });
 
-  // Sistem Cadangan (Tahan Banting) - Fokus ke Channel Berita Gratis yang tidak dikunci Premium
+  // Urutan Target: Tembak CNN Indonesia dulu, kalau web error lompat ke channel berita lain
   const fallbackUrls = [
       'https://www.cubmu.com/watch/live-tv/211-cnn-indonesia',
       'https://www.cubmu.com/watch/live-tv/213-cnbc-indonesia',
@@ -51,7 +51,7 @@ const sessionToken = process.env.SESSION_TOKEN;
           if(baseUrl) break;
       }
       
-      if (baseUrl) break; // Token didapat, langsung keluar dari loop pancingan
+      if (baseUrl) break; // Token didapat, langsung keluar dari loop
       console.log(`[-] Gagal mendapatkan token dari ${url}, mencoba channel lain...`);
   }
   
@@ -64,7 +64,7 @@ const sessionToken = process.env.SESSION_TOKEN;
   }
 
   // ==========================================
-  // DATABASE CHANNEL 
+  // DATABASE CHANNEL (Full 57 Channel)
   // ==========================================
   const channels = [
     // TV Nasional
@@ -140,25 +140,15 @@ const sessionToken = process.env.SESSION_TOKEN;
   console.log(`\n--- Merakit File cubmu.m3u (${channels.length} Channel) ---`);
   let m3uContent = '#EXTM3U\n\n';
 
+  // Semuanya dipukul rata pakai URL Cubmu dan Headers Kodi
   for (const ch of channels) {
       m3uContent += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
-      
-      // Subsidi Silang Khusus Trans TV & Trans 7 (Menggunakan Server Publik TransCorp tanpa DRM)
-      if (ch.name === "Trans TV") {
-          m3uContent += `https://d361n9r80tyx7y.cloudfront.net/out/v1/4b901b5a5bfa4a6d82c2356ce5ba1e4d/index.m3u8\n\n`;
-      } 
-      else if (ch.name === "Trans 7") {
-          m3uContent += `https://d361n9r80tyx7y.cloudfront.net/out/v1/a29cc88a442a4a75be4120349b29ddfe/index.m3u8\n\n`;
-      } 
-      // Sisa 55 Channel lainnya pakai server Cubmu & Token Kunci
-      else {
-          m3uContent += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
-          m3uContent += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
-          m3uContent += `#KODIPROP:inputstream.adaptive.license_key=6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9\n`;
-          m3uContent += `${baseUrl}${ch.code}/manifest.mpd\n\n`;
-      }
+      m3uContent += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
+      m3uContent += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
+      m3uContent += `#KODIPROP:inputstream.adaptive.license_key=6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9\n`;
+      m3uContent += `${baseUrl}${ch.code}/manifest.mpd\n\n`;
   }
 
   fs.writeFileSync('cubmu.m3u', m3uContent);
-  console.log(`✅ File cubmu.m3u berhasil dibuat! (Kecepatan Kilat & Tahan Banting)`);
+  console.log(`✅ File cubmu.m3u berhasil dibuat dengan Token dari CNN!`);
 })();
