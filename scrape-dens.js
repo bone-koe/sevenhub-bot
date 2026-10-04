@@ -1,117 +1,156 @@
-const { chromium } = require('playwright');
+// =====================================================================
+//  Dens.TV M3U Generator (tanpa Playwright - langsung via API resmi web)
+//  Output: dens_all.m3u
+// =====================================================================
 const fs = require('fs');
 
-const categories = [
-    { url: 'https://www.dens.tv/tv-local', group: 'Local Channels' },
-    { url: 'https://www.dens.tv/tv-premium', group: 'Premium Channels' },
-    { url: 'https://www.dens.tv/tv-international', group: 'International Channels' },
-    { url: 'https://www.dens.tv/tv-free-streaming', group: 'Free Streaming Channels' }
+const BASE = 'https://www.dens.tv';
+const OUTPUT = 'dens_all.m3u';
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+// ID kategori diambil dari variabel "tvCategories" di halaman dens.tv/tv-local
+const CATEGORIES = [
+    { id: 1,  slug: 'local',          group: 'Local Channels' },
+    { id: 2,  slug: 'premium',        group: 'Premium Channels' },
+    { id: 3,  slug: 'international',  group: 'International Channels' },
+    { id: 13, slug: 'free-streaming', group: 'Free Streaming Channels' }
 ];
 
-(async () => {
-    console.log("🚀 Memulai ekstraksi masal semua channel Dens.TV...\n");
-    
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36'
-    });
-    const page = await context.newPage();
+const HEADERS = {
+    'User-Agent': UA,
+    'Accept': 'application/json, text/plain, */*',
+    'Referer': `${BASE}/tv-local`,
+    'Origin': BASE
+};
 
-    let playlist = "#EXTM3U\n\n";
-    let allChannels = [];
-
-    // TAHAP 1: Kumpulkan Daftar Channel
-    for (const cat of categories) {
-        console.log(`📂 Memindai kategori: ${cat.group}...`);
-        
-        // PERBAIKAN: Gunakan 'networkidle' agar bot menunggu JavaScript Dens.TV selesai memproses halaman
-        await page.goto(cat.url, { waitUntil: 'networkidle', timeout: 30000 });
-        
-        // PERBAIKAN: Secara eksplisit perintahkan bot mencari elemen channel, tunggu maksimal 15 detik
-        try {
-            await page.waitForSelector('a[href*="/watch/"]', { timeout: 15000 });
-            await page.waitForTimeout(2000); // Ekstra jeda 2 detik agar seluruh gambar logo ikut termuat
-        } catch (e) {
-            console.log("   [Peringatan] Loading halaman lambat atau kategori sedang kosong.");
-        }
-        
-        const channels = await page.$$eval('a[href*="/watch/"]', (links, groupName) => {
-            return links.map(a => {
-                const href = a.href;
-                const img = a.querySelector('img');
-                const logo = img ? img.src : '';
-                const slug = href.split('/').pop();
-                const name = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                
-                return { url: href, name, logo, group: groupName };
-            });
-        }, cat.group);
-
-        const uniqueChannels = channels.filter((v, i, a) => a.findIndex(t => (t.url === v.url)) === i);
-        console.log(`   Ditemukan ${uniqueChannels.length} channel.`);
-        allChannels.push(...uniqueChannels);
+async function fetchWithTimeout(url, options = {}, ms = 15000) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ms);
+    try {
+        return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+        clearTimeout(timer);
     }
+}
 
-    console.log(`\nTotal keseluruhan channel yang akan diekstrak: ${allChannels.length}`);
-    
-    // Hentikan jika ternyata masih gagal mengambil channel
-    if (allChannels.length === 0) {
-        console.log("❌ Gagal merender daftar channel. Website mungkin mendeteksi bot, batalkan proses.");
-        await browser.close();
-        return;
-    }
+// Ambil semua channel dalam 1 kategori (ikut paginasi "linknext" bila ada)
+async function getChannelsByCategory(cat) {
+    const results = [];
+    let url = `${BASE}/api/dens3/tv/TvChannels/listByCategory?id_category=${cat.id}`;
+    let guard = 0;
 
-    console.log("Mulai melakukan 'Fast Sniffing' m3u8...\n");
+    while (url && guard < 20) {
+        guard++;
+        let json = null;
 
-    // TAHAP 2: Menangkap URL m3u8 satu per satu
-    for (let i = 0; i < allChannels.length; i++) {
-        const ch = allChannels[i];
-        process.stdout.write(`[${i + 1}/${allChannels.length}] Menangkap ${ch.name}... `);
-
-        const m3u8Url = await new Promise(async (resolve) => {
-            let isFound = false;
-            
-            const requestHandler = (request) => {
-                const reqUrl = request.url();
-                if (reqUrl.includes('.m3u8')) {
-                    isFound = true;
-                    page.removeListener('request', requestHandler);
-                    const baseUrl = reqUrl.substring(0, reqUrl.lastIndexOf('/'));
-                    resolve(baseUrl + '/index.m3u8');
-                }
-            };
-
-            page.on('request', requestHandler);
-
+        for (let attempt = 1; attempt <= 3; attempt++) {
             try {
-                // Gunakan mode load standard, jalankan asinkron
-                page.goto(ch.url, { waitUntil: 'load', timeout: 15000 }).catch(()=>{});
-                
-                // Polling cek m3u8, maksimal tunggu 15 detik (30 x 500ms) per channel
-                for(let w = 0; w < 30; w++) { 
-                    if(isFound) break;
-                    await page.waitForTimeout(500);
-                }
-            } catch (e) { }
-
-            if (!isFound) {
-                page.removeListener('request', requestHandler);
-                resolve(null);
+                const res = await fetchWithTimeout(url, { headers: HEADERS });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                json = await res.json();
+                break;
+            } catch (e) {
+                console.log(`   ⚠️  Percobaan ${attempt}/3 gagal: ${e.message}`);
+                if (attempt < 3) await new Promise(r => setTimeout(r, 2000 * attempt));
             }
-        });
-
-        if (m3u8Url) {
-            console.log("✅ Sukses");
-            playlist += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [DENS]\n`;
-            playlist += `${m3u8Url}\n\n`;
-        } else {
-            console.log("❌ Gagal / Timeout");
         }
+
+        if (!json || !json.success || !json.data) break;
+
+        const contents = Array.isArray(json.data.contents) ? json.data.contents : [];
+        for (const item of contents) {
+            const meta = item.meta || {};
+            const live = meta.videos && meta.videos.live;
+            if (!live) continue;
+            results.push({
+                id: meta.id,
+                name: (meta.title || meta.slug || 'Unknown').trim(),
+                slug: meta.slug || '',
+                logo: (meta.images && meta.images.default) || '',
+                url: live,
+                rights: item.rules ? item.rules.rights : null,
+                group: cat.group
+            });
+        }
+
+        const next = json.data.linknext;
+        url = next ? (next.startsWith('http') ? next : new URL(next, BASE).toString()) : null;
     }
 
-    // TAHAP 3: Simpan Hasil
-    fs.writeFileSync('dens_all.m3u', playlist);
-    console.log("\n🎉 SELESAI! Seluruh channel berhasil dibungkus di dalam file 'dens_all.m3u'");
+    return results;
+}
 
-    await browser.close();
+// Cek apakah stream benar-benar hidup (harus membalas playlist #EXTM3U)
+async function checkStream(url) {
+    try {
+        const res = await fetchWithTimeout(url, { headers: { 'User-Agent': UA, 'Referer': `${BASE}/` } }, 10000);
+        if (!res.ok) return false;
+        const text = await res.text();
+        return text.includes('#EXTM3U');
+    } catch {
+        return false;
+    }
+}
+
+// Jalankan pengecekan paralel dengan batas jumlah koneksi
+async function runPool(items, limit, worker) {
+    const out = new Array(items.length);
+    let idx = 0;
+    const runners = Array.from({ length: limit }, async () => {
+        while (idx < items.length) {
+            const i = idx++;
+            out[i] = await worker(items[i], i);
+        }
+    });
+    await Promise.all(runners);
+    return out;
+}
+
+(async () => {
+    console.log('🚀 Mengambil daftar channel Dens.TV via API...\n');
+
+    let all = [];
+    for (const cat of CATEGORIES) {
+        console.log(`📂 Kategori: ${cat.group} (id=${cat.id})`);
+        const list = await getChannelsByCategory(cat);
+        console.log(`   Ditemukan ${list.length} channel.`);
+        all.push(...list);
+    }
+
+    // Buang duplikat berdasarkan URL stream
+    all = all.filter((v, i, a) => a.findIndex(t => t.url === v.url) === i);
+    console.log(`\nTotal channel dari API: ${all.length}`);
+
+    // Pengaman: jangan timpa playlist lama dengan file kosong
+    if (all.length === 0) {
+        console.log('❌ API tidak mengembalikan channel (kemungkinan diblokir/maintenance). File lama TIDAK ditimpa.');
+        process.exit(1);
+    }
+
+    console.log('\n🔎 Mengecek status setiap stream...\n');
+    const status = await runPool(all, 8, async (ch, i) => {
+        const ok = await checkStream(ch.url);
+        console.log(`[${String(i + 1).padStart(2, '0')}/${all.length}] ${ok ? '✅' : '❌'} ${ch.name}`);
+        return ok;
+    });
+
+    const alive = all.filter((_, i) => status[i]);
+    console.log(`\nStream hidup: ${alive.length}/${all.length}`);
+
+    // Jika semua gagal dicek (misal server runner diblokir CDN), tetap tulis semua channel
+    const finalList = alive.length > 0 ? alive : all;
+    if (alive.length === 0) {
+        console.log('⚠️  Semua cek stream gagal dari server ini, semua channel tetap dimasukkan.');
+    }
+
+    let m3u = '#EXTM3U\n\n';
+    for (const ch of finalList) {
+        m3u += `#EXTINF:-1 tvg-id="dens-${ch.id}" tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [DENS]\n`;
+        m3u += `#EXTVLCOPT:http-user-agent=${UA}\n`;
+        m3u += `#EXTVLCOPT:http-referrer=${BASE}/\n`;
+        m3u += `${ch.url}\n\n`;
+    }
+
+    fs.writeFileSync(OUTPUT, m3u);
+    console.log(`\n🎉 SELESAI! ${finalList.length} channel disimpan ke '${OUTPUT}'`);
 })();
