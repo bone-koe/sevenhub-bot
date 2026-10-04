@@ -1,12 +1,85 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 
+// KAMUS PINTAR: Pemetaan Nama Channel -> Kode Slug Internal Cubmu
+const slugMap = {
+    "trans tv": "TransTV",
+    "trans 7": "TRANS7-my",
+    "cnn indonesia": "CNNi-my",
+    "cnbc indonesia": "CNBC-Indonesia",
+    "metrotv": "MetroTV",
+    "metro tv": "MetroTV",
+    "tvone": "TVONE",
+    "sctv": "SCTV-my",
+    "indosiar": "Indosiar",
+    "rcti": "RCTI-Channel",
+    "gtv": "GTV-CHANNEL",
+    "jaktv": "Jak tv Channel",
+    "jak tv": "Jak tv Channel",
+    "btv": "BTV Channel",
+    "kompas tv": "Kompas TV",
+    "mdtv": "MDTV",
+    "rtv": "rtv Chnl",
+    "mnc tv": "MNCTV",
+    "tvri": "TVRI",
+    "antv": "ANTV",
+    "jtv": "jtv-Channel",
+    "berita satu": "Berita Satu",
+    "garuda tv": "Garuda TV",
+    "golf plus id": "Golf-Channel",
+    "football tv": "Football TV",
+    "sports tv": "Sports TV",
+    "xtrem sports": "Xtrem Sports",
+    "speed tv": "Speed TV",
+    "fight tv premium": "Fight TV Premium",
+    "psj tv": "PSJ TV",
+    "hbo hd": "HBO-my",
+    "hbo hits": "HBO Hits",
+    "hbo signature": "HBO-Signature-my",
+    "hbo family": "HBO-Family-my",
+    "cinemax": "Cinemax",
+    "warner tv hd": "Warner TV",
+    "axn hd": "AXN-my",
+    "tvn movies": "TVN Movies",
+    "celestial movies": "Celestial Movies",
+    "bioskop indonesia": "Bioskop Indonesia",
+    "thrill": "Thrill",
+    "movies news": "Movies News",
+    "cartoon network hd": "Cartoon Network",
+    "cartoonito hd": "Cartoonito",
+    "cartoon tv premium": "Cartoon TV Premium",
+    "cartoon tv": "Cartoon TV",
+    "dunia anak": "Dunia Anak",
+    "cartoon tv classic": "Cartoon TV Classics",
+    "travel tv": "Travel TV",
+    "eat n go": "Eat N Go",
+    "fashion tv": "Fashion TV",
+    "cooking tv": "Cooking TV",
+    "gaming tv": "Gaming TV",
+    "dens food channel": "DENS Food Channel",
+    "dens play channel": "DENS Play Channel",
+    "superyacht tv": "Superyacht TV",
+    "dens show bizz": "DENS ShowBizz",
+    "knowledge+": "Knowledge+",
+    "cgtn documentary": "CGTN Documentary",
+    "tvri sport": "TVRI Sport"
+};
+
+// Fungsi untuk merapikan nama (Hapus "live-tv-" dan Kapitalisasi Huruf Pertama)
+function cleanChannelName(rawName) {
+    if (!rawName) return "";
+    let clean = rawName.toLowerCase().replace(/^live-tv-/i, '').trim();
+    // Ubah huruf pertama setiap kata menjadi kapital (Contoh: "cnn indonesia" -> "Cnn Indonesia")
+    clean = clean.replace(/\b\w/g, char => char.toUpperCase());
+    // Pengecualian khusus (karena CNN lebih bagus kapital semua)
+    clean = clean.replace(/Cnn/g, 'CNN').replace(/Cnbc/g, 'CNBC').replace(/Tv/g, 'TV');
+    return clean;
+}
+
 (async () => {
-    console.log("🚀 Memulai proses pembaruan otomatis daftar channel Cubmu...");
+    console.log("🚀 Memulai ekstraksi daftar channel Cubmu dengan Kamus Pintar...");
     
     const browser = await chromium.launch({ headless: true });
-    
-    // 1. MENGAKALI DETEKSI BOT: Gunakan User-Agent asli PC
     const context = await browser.newContext({
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         viewport: { width: 1280, height: 720 }
@@ -16,24 +89,17 @@ const fs = require('fs');
     let allChannels = [];
     let cdnToken = "riutx01-a823b93f0d45cabb0fba0e57ca612f86";
 
+    // Mencegat API Cubmu
     page.on('response', async (response) => {
         const url = response.url();
-        
-        // Jaring API diperlebar: Tangkap SEMUA JSON dari Transvision
         if (url.includes('transvision.co.id/global/v')) {
             try {
                 const json = await response.json();
-                if (json && json.data && Array.isArray(json.data)) {
-                    // Pastikan yang ditangkap adalah data channel (ada atribut content_name)
-                    const isChannelList = json.data.some(d => d.content_name);
-                    if (isChannelList) {
-                        allChannels.push(...json.data);
-                    }
+                if (json && json.data && Array.isArray(json.data) && json.data.some(d => d.content_name)) {
+                    allChannels.push(...json.data);
                 }
             } catch (e) {}
         }
-
-        // Tangkap token riutx01
         if (url.includes('.mpd') && url.includes('riutx01')) {
             const match = url.match(/(riutx01-[^\/]+)/);
             if (match) {
@@ -42,48 +108,58 @@ const fs = require('fs');
         }
     });
 
-    console.log("Membuka halaman utama Live TV untuk memindai channel...");
+    console.log("Membuka halaman web utama Cubmu...");
     await page.goto('https://www.cubmu.com/live-tv', { waitUntil: 'networkidle', timeout: 30000 });
 
-    // Scroll ke bawah perlahan agar semua gambar channel dimuat penuh
     for (let i = 0; i < 20; i++) {
         await page.mouse.wheel(0, 1000);
         await page.waitForTimeout(1000);
     }
 
-    // 2. METODE FALLBACK (RENCANA B)
-    // Jika API ternyata tetap kosong/diblokir, kita ambil nama dari gambar di layar
+    // FALLBACK: Membaca gambar dari layar jika API diblokir Cloudflare GitHub Actions
     if (allChannels.length === 0) {
-        console.log("⚠️ API tidak merespons! Mengaktifkan metode Fallback (DOM Scraping)...");
+        console.log("⚠️ API Kosong. Membaca paksa nama channel dari layar HTML...");
         const domChannels = await page.$$eval('img', imgs => {
             return imgs.map(img => ({
                 content_name: img.alt || '',
                 content_image: img.src || '',
-                genre_name: 'Live TV' // Kategori default untuk fallback
+                genre_name: 'Live TV'
             })).filter(c => c.content_image.includes('channel_image') || c.content_image.includes('ott_image'));
         });
         allChannels.push(...domChannels);
     }
 
-    console.log("Membuka CNN Indonesia sejenak untuk memancing kunci token stream...");
+    console.log("Membuka CNN Indonesia untuk mengambil token sesi terbaru...");
     try {
         await page.goto('https://www.cubmu.com/live-tv/212/cnn-indonesia', { waitUntil: 'networkidle', timeout: 20000 });
         await page.waitForTimeout(5000); 
     } catch (e) {
-        console.log("   [Peringatan] Timeout saat memuat CNN, menggunakan token cadangan.");
+        console.log("   [Peringatan] Timeout saat memuat CNN, menggunakan token awal.");
     }
 
-    // Bersihkan data kosong dan hapus duplikat channel
-    const uniqueChannels = allChannels.filter((v, i, a) => {
-        if (!v.content_name || v.content_name.trim() === '') return false; // Buang data tanpa nama
-        return a.findIndex(t => (t.content_name === v.content_name)) === i;
+    // Bersihkan nama dari "live-tv-" dan hapus duplikat
+    let uniqueChannels = [];
+    let seen = new Set();
+
+    allChannels.forEach(ch => {
+        let rawName = ch.content_name || "";
+        let cleanName = cleanChannelName(rawName);
+        
+        if (cleanName !== "" && !seen.has(cleanName)) {
+            seen.add(cleanName);
+            uniqueChannels.push({
+                name: cleanName,
+                logo: ch.content_image || ch.content_ott_image || "",
+                group: ch.genre_name || "Live TV",
+                rawSearchKey: rawName.toLowerCase().replace(/^live-tv-/i, '').trim()
+            });
+        }
     });
 
-    console.log(`\n✅ Berhasil mengekstrak ${uniqueChannels.length} channel unik dari sistem Cubmu!`);
-    console.log(`🔑 Token CDN yang digunakan: ${cdnToken}\n`);
+    console.log(`\n✅ Berhasil mendapatkan ${uniqueChannels.length} channel unik!`);
 
     if (uniqueChannels.length === 0) {
-        console.log("❌ Gagal mendapatkan daftar channel dari web. Proses dibatalkan.");
+        console.log("❌ Gagal. Proses dibatalkan.");
         await browser.close();
         return;
     }
@@ -92,11 +168,18 @@ const fs = require('fs');
     const CLEAR_KEY = "6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9";
 
     uniqueChannels.forEach(ch => {
-        const base64Slug = Buffer.from(ch.content_name).toString('base64').replace(/=+$/, '');
-        const logo = ch.content_image || ch.content_ott_image || "";
-        const group = ch.genre_name || "Live TV";
+        // 1. Cari kode rahasia di Kamus Pintar berdasarkan nama
+        let streamSlug = slugMap[ch.rawSearchKey];
+        
+        // 2. Jika channel benar-benar BARU & tidak ada di kamus, kita coba gunakan namanya langsung
+        if (!streamSlug) {
+            streamSlug = ch.name;
+        }
 
-        playlist += `#EXTINF:-1 tvg-logo="${logo}" group-title="${group}", ${ch.content_name} [CUBMU]\n`;
+        // 3. Konversi ke Base64 (Karena format m3u8 Transvision mensyaratkan Base64)
+        const base64Slug = Buffer.from(streamSlug).toString('base64').replace(/=+$/, '');
+
+        playlist += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
         playlist += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
         playlist += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
         playlist += `#KODIPROP:inputstream.adaptive.license_key=${CLEAR_KEY}\n`;
@@ -104,7 +187,7 @@ const fs = require('fs');
     });
 
     fs.writeFileSync('cubmu.m3u', playlist);
-    console.log("🎉 SELESAI! cubmu.m3u berhasil ditulis.");
+    console.log("🎉 SELESAI! cubmu.m3u berhasil ditulis ulang dengan rapi dan akurat.");
 
     await browser.close();
 })();
