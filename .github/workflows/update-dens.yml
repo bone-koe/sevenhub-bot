@@ -1,0 +1,41 @@
+name: Auto-update DensTV M3U
+
+on:
+  schedule:
+    # Berjalan otomatis setiap 12 jam (silakan sesuaikan jika ingin lebih cepat/lambat)
+    - cron: '0 */12 * * *'
+  workflow_dispatch: # Mengizinkan Anda menekan tombol "Run workflow" secara manual kapan saja
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Playwright & Dependencies
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
+
+      - name: Run Scraper DensTV
+        # Pastikan nama file JS di repo Anda sesuai dengan ini
+        run: node scrape-dens.js
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Tambahkan file m3u ke git
+          git add dens_all.m3u
+          
+          # Cek apakah ada perubahan, jika ada lakukan commit dan push. 
+          # Ditambahkan [skip ci] agar tidak memicu infinite loop action.
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update DensTV M3U [skip ci]" && git push)
