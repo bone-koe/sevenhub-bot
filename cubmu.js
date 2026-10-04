@@ -62,6 +62,7 @@ const slugMap = {
     "dens show bizz": "DENS ShowBizz",
     "knowledge+": "Knowledge+",
     "cgtn documentary": "CGTN Documentary",
+    "!nsert": "insert-ch-scte35",
     "tvri sport": "TVRI Sport"
 };
 
