@@ -8,8 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
-    # Memberikan izin kepada bot GitHub Actions untuk menyimpan (write/push) ke dalam repo
+
+    # Izin agar bot bisa push hasil playlist ke repo
     permissions:
       contents: write
 
@@ -22,11 +22,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Playwright & Dependencies
-        run: |
-          npm install playwright
-          npx playwright install chromium --with-deps
-
       - name: Run Scraper DensTV
         run: node scrape-dens.js
 
@@ -34,9 +29,9 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Tambahkan file hasil output ke dalam antrean Git
+
+          # Hanya file playlist yang dimasukkan ke commit
           git add dens_all.m3u
-          
-          # Hanya eksekusi commit & push JIKA benar-benar ada file dens_all.m3u yang berubah
+
+          # Commit & push hanya jika isi dens_all.m3u berubah
           git diff --staged --quiet || (git commit -m "Auto-update DensTV M3U [skip ci]" && git push)
