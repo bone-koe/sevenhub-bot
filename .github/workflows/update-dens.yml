@@ -2,13 +2,16 @@ name: Auto-update DensTV M3U
 
 on:
   schedule:
-    # Berjalan otomatis setiap 12 jam (silakan sesuaikan jika ingin lebih cepat/lambat)
     - cron: '0 */12 * * *'
-  workflow_dispatch: # Mengizinkan Anda menekan tombol "Run workflow" secara manual kapan saja
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    # Memberikan izin kepada bot GitHub Actions untuk menyimpan (write/push) ke dalam repo
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Repository
@@ -25,7 +28,6 @@ jobs:
           npx playwright install chromium --with-deps
 
       - name: Run Scraper DensTV
-        # Pastikan nama file JS di repo Anda sesuai dengan ini
         run: node scrape-dens.js
 
       - name: Commit and Push Changes
@@ -33,9 +35,8 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           
-          # Tambahkan file m3u ke git
+          # Tambahkan file hasil output ke dalam antrean Git
           git add dens_all.m3u
           
-          # Cek apakah ada perubahan, jika ada lakukan commit dan push. 
-          # Ditambahkan [skip ci] agar tidak memicu infinite loop action.
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update DensTV M3U [skip ci]" && git push)
+          # Hanya eksekusi commit & push JIKA benar-benar ada file dens_all.m3u yang berubah
+          git diff --staged --quiet || (git commit -m "Auto-update DensTV M3U [skip ci]" && git push)
