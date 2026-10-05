@@ -1,9 +1,9 @@
 /**
- * resolve_streams.js (V7 - Smart M3U8 Detection)
+ * resolve_streams.js (V8 - Smart M3U8 Detection + Fixed Ad-Killer)
  * ─────────────────────────────────────────────────────────────────────────────
  * MABES ENTERPRISE - Playwright Stream Resolver
- * - Deteksi Cerdas: Menunggu URL m3u8 terakhir (varian asli) yang dipanggil player.
- * - Tidak kaku: Beradaptasi otomatis entah itu mono.m3u8, index.m3u8, dll.
+ * - Deteksi Cerdas: Menunggu URL varian asli tanpa hardcode "mono"
+ * - Ad-Killer: Otomatis tutup popup iklan TANPA menutup halaman utama
  * - Time Filter: Abaikan match yang lewat > 12 jam.
  * ─────────────────────────────────────────────────────────────────────────────
  */
@@ -58,14 +58,22 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
       extraHTTPHeaders: { 'Referer': 'https://embed.st/', 'Origin': 'https://embed.st' }
     });
     
-    // Otomatis tutup popup iklan
-    context.on('page', newPage => { newPage.close().catch(()=>{}); });
-    
+    // 1. Buat halaman UTAMA terlebih dahulu
     page = await context.newPage();
-    // Blokir aset berat kecuali JS/CSS yang mungkin dibutuhkan player
-    await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf}', route => route.abort());
+
+    // 2. Pasang penjaga: Jika ada halaman baru SELAIN halaman utama, itu iklan popup, TUTUP!
+    context.on('page', newPage => { 
+      if (newPage !== page) {
+        newPage.close().catch(()=>{}); 
+      }
+    });
+    
+    // Blokir aset berat agar super cepat
+    await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf}', route => {
+      route.abort().catch(()=>{});
+    });
   } catch (e) {
-    console.log(`  ❌ Browser Error: ${label}`);
+    console.log(`  ❌ Browser Error [${label}]: ${e.message}`);
     return null;
   }
 
@@ -82,10 +90,9 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
       resolveP(url); 
     };
 
-    // Timeout utama (25 detik)
     const timer = setTimeout(() => { 
       console.log(`  ⏱️ Timeout: ${label}`); 
-      finish(bestUrl || null); // Jika kehabisan waktu, ambil URL terakhir yang sempat terekam
+      finish(bestUrl || null); 
     }, PAGE_TIMEOUT_MS);
 
     // LOGIKA CERDAS: Pantau Jaringan
@@ -94,10 +101,10 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
       const url = request.url();
       
       if (url.includes('.m3u8') && CDN_REGEX.test(url)) {
-        bestUrl = url; // Update kandidat URL terbaik
+        bestUrl = url;
         
         // Reset timer 3 detik. Jika tidak ada m3u8 baru dalam 3 detik, 
-        // kita anggap player sudah memanggil varian terakhirnya (ex: mono.m3u8).
+        // kita ambil URL ini sebagai hasil final.
         clearTimeout(settleTimer);
         settleTimer = setTimeout(() => {
           console.log(`  ✅ [Smart-Detect] ${label} → ${bestUrl.substring(0, 60)}...`);
@@ -108,10 +115,8 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
 
     // Jalankan halaman
     page.goto(embedUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TIMEOUT_MS }).then(async () => {
-      // Pancing player dengan simulasi klik tepat di tengah layar (aman, tidak menyebabkan crash)
-      try {
-        await page.mouse.click(400, 300);
-      } catch(e) {}
+      // Pancing player agar berjalan
+      try { await page.mouse.click(400, 300); } catch(e) {}
     }).catch(() => {});
   });
 
@@ -131,7 +136,7 @@ async function processBatch(browser, tasks) {
 }
 
 async function main() {
-  console.log('🚀 Stream Resolver (Smart M3U8 Edition) starting...');
+  console.log('🚀 Stream Resolver (Smart Detect & Fixed Ad-Killer) starting...');
   const sourceData = await fetchJson(SOURCE_JSON_URL);
   
   let liveMatches = sourceData.filter(m => (m['Match Status'] || '').toLowerCase().includes('live') && Array.isArray(m['Streams']));
@@ -143,11 +148,12 @@ async function main() {
     match: m, stream: s, embedUrl: s['Embed_URL'], label: `[${m['Match Title']}] ${s['Quality']||''}`
   })));
 
-  // Argumen browser dibuat agar memaksakan Autoplay
+  // Argumen browser lengkap untuk Bypass, Autoplay, dan stabilitas server
   const browser = await chromium.launch({ 
     headless: true, 
     args: [
       '--no-sandbox', 
+      '--disable-setuid-sandbox',
       '--disable-gpu',
       '--autoplay-policy=no-user-gesture-required',
       '--mute-audio'
