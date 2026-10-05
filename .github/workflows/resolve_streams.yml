@@ -1,0 +1,52 @@
+name: Resolve Stream URLs
+
+on:
+  # Dipanggil oleh layanan cron eksternal (cron-job.org, easycron, dll)
+  # via GitHub API: POST /repos/{owner}/{repo}/actions/workflows/resolve_streams.yml/dispatches
+  workflow_dispatch:
+
+  # Backup: jadwal bawaan GitHub (opsional, aktifkan jika tidak pakai cron eksternal)
+  # schedule:
+  #   - cron: '*/10 * * * *'   # setiap 10 menit (perhatikan kuota GitHub Actions)
+
+permissions:
+  contents: write   # diperlukan untuk commit dan push resolved_streams.json
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12   # batas keamanan agar tidak memakan terlalu banyak menit Actions
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium + system deps
+        run: npx playwright install chromium --with-deps
+
+      - name: Run stream resolver
+        run: node scripts/resolve_streams.js
+        env:
+          # Opsional: set GITHUB_TOKEN jika butuh autentikasi saat fetch raw GitHub
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit & push resolved_streams.json
+        run: |
+          git config user.name  "Stream Resolver Bot"
+          git config user.email "bot@noreply.github.com"
+          git add resolved_streams.json
+          # Hanya commit jika ada perubahan
+          git diff --staged --quiet && echo "No changes, skip commit." || \
+            git commit -m "🔄 Resolved streams [$(date -u '+%Y-%m-%d %H:%M UTC')]" && \
+            git push
