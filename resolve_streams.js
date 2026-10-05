@@ -1,10 +1,10 @@
 /**
- * resolve_streams.js (V9 - Master Playlist Parser Edition)
+ * resolve_streams.js (V10 - Ultimate Browser Parser Edition)
  * ─────────────────────────────────────────────────────────────────────────────
  * MABES ENTERPRISE - Playwright Stream Resolver
- * - Strategi Anti-Gagal: Membaca isi file playlist.m3u8 untuk mengekstrak 
- *   URL varian asli tanpa harus berurusan dengan klik iklan atau video player.
- * - Sesuai MOU: Cepat, stabil, tanpa tebakan.
+ * - Strategi Anti-Bot: Mengekstrak varian m3u8 dari DALAM mesin browser
+ *   agar tidak diblokir oleh CDN.
+ * - Sesuai MOU: Full Script, Teliti, Tanpa Tebakan.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -16,9 +16,10 @@ const SOURCE_JSON_URL = 'https://raw.githubusercontent.com/srhady/data/refs/head
 const OUTPUT_FILE = 'resolved_streams.json';
 
 const CDN_REGEX = /strmd\.st|vipstreams\.in|streamed\.su|lb\d+\./;
-const PAGE_TIMEOUT_MS = 20000;
+const PAGE_TIMEOUT_MS = 25000;
 const CONCURRENCY     = 4;
 
+// ─── HELPER MENGAMBIL DATA SUMBER JSON ───────────────────────────────────────
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
@@ -30,6 +31,7 @@ function fetchJson(url) {
   });
 }
 
+// ─── HELPER FILTER WAKTU (MENGABAIKAN PERTANDINGAN KEDALUWARSA) ──────────────
 function isMatchValid(timeStr) {
   if (!timeStr) return true;
   try {
@@ -46,53 +48,7 @@ function isMatchValid(timeStr) {
   } catch(e) { return true; }
 }
 
-// ─── FUNGSI CERDAS: Membaca isi playlist.m3u8 dan mengekstrak variannya ──────
-function extractVariantUrl(masterUrl) {
-  return new Promise((resolve) => {
-    const urlObj = new URL(masterUrl);
-    const options = {
-      hostname: urlObj.hostname,
-      path: urlObj.pathname + urlObj.search,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-        'Referer': 'https://embed.st/',
-        'Origin': 'https://embed.st'
-      }
-    };
-
-    https.get(options, res => {
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try {
-          const lines = data.split('\n').map(l => l.trim()).filter(Boolean);
-          let variant = null;
-          
-          for (let i = 0; i < lines.length; i++) {
-            if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
-              const nextLine = lines[i+1];
-              if (nextLine && !nextLine.startsWith('#')) {
-                variant = nextLine;
-                break; // Ambil varian pertama (tertinggi)
-              }
-            }
-          }
-          
-          if (variant) {
-            const baseUrl = masterUrl.substring(0, masterUrl.lastIndexOf('/') + 1);
-            resolve(baseUrl + variant); // Mengembalikan .../1/high/mono.m3u8 dll
-          } else {
-            resolve(masterUrl); // Jika tidak ditemukan, kembalikan apa adanya
-          }
-        } catch (e) {
-          resolve(masterUrl);
-        }
-      });
-    }).on('error', () => resolve(masterUrl));
-  });
-}
-// ─────────────────────────────────────────────────────────────────────────────
-
+// ─── FUNGSI UTAMA RESOLVER MENGGUNAKAN PLAYWRIGHT ────────────────────────────
 async function resolveEmbedUrl(browser, embedUrl, label) {
   if (!embedUrl) return null;
 
@@ -105,10 +61,13 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
     });
     
     page = await context.newPage();
+    
+    // Penjaga Tab Iklan (Otomatis Tutup Halaman Baru)
     context.on('page', newPage => { 
       if (newPage !== page) newPage.close().catch(()=>{}); 
     });
     
+    // Blokir muatan berat (gambar, font, dll) agar loading super cepat
     await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf}', route => {
       route.abort().catch(()=>{});
     });
@@ -120,29 +79,61 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
   const m3u8Url = await new Promise(resolveP => {
     let done = false;
     
-    // Fungsi penyelesaian yang membedah URL
+    // FUNGSI PENYELESAIAN (Mengekstrak Varian Langsung dari Browser)
     const finish = async (url) => { 
       if (done) return; 
       done = true; 
       clearTimeout(timer); 
 
+      // Jika URL adalah Master Playlist, bongkar dan cari variannya
       if (url && url.includes('playlist.m3u8')) {
-        // Ekstrak variannya secara langsung!
-        const finalUrl = await extractVariantUrl(url);
-        console.log(`  ✅ [Parsed] ${label} → ${finalUrl.substring(0, 60)}...`);
-        resolveP(finalUrl);
-      } else {
-        console.log(`  ✅ [Direct] ${label} → ${(url || '').substring(0, 60)}...`);
-        resolveP(url); 
+        try {
+          // KUNCI SUKSES: Minta browser asli (yang lolos anti-bot) untuk mendownload isi file
+          const m3u8Text = await page.evaluate(async (targetUrl) => {
+            try {
+              const res = await fetch(targetUrl);
+              return await res.text();
+            } catch(e) { return null; }
+          }, url);
+
+          if (m3u8Text) {
+            const lines = m3u8Text.split('\n').map(l => l.trim()).filter(Boolean);
+            let variant = null;
+            
+            // Cari baris yang menyimpan URL varian aslinya (berada di bawah #EXT-X-STREAM-INF)
+            for (let i = 0; i < lines.length; i++) {
+              if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
+                const nextLine = lines[i+1];
+                if (nextLine && !nextLine.startsWith('#')) {
+                  variant = nextLine;
+                  break; // Tangkap varian pertama (biasanya tertinggi)
+                }
+              }
+            }
+            
+            if (variant) {
+              const finalUrl = url.substring(0, url.lastIndexOf('/') + 1) + variant;
+              console.log(`  ✅ [Parsed-Browser] ${label} → ${finalUrl.substring(0, 60)}...`);
+              return resolveP(finalUrl);
+            }
+          }
+        } catch(e) {
+          console.log(`  ⚠️ [Parse Error] Gagal mengekstrak varian dari: ${label}`);
+        }
       }
+      
+      // Jika gagal dibongkar atau memang bukan playlist.m3u8, kembalikan apa adanya
+      console.log(`  ✅ [Direct] ${label} → ${(url || '').substring(0, 60)}...`);
+      resolveP(url); 
     };
 
+    // Batas Waktu 25 Detik
     const timer = setTimeout(() => { 
       console.log(`  ⏱️ Timeout: ${label}`); 
       finish(null); 
     }, PAGE_TIMEOUT_MS);
 
-    // Tangkap dari respons otentikasi (Sangat Cepat)
+    // Tangkap dari respons Fast Auth (Sangat Cepat)
     page.on('response', async response => {
       if (done) return;
       try {
@@ -156,7 +147,7 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
       } catch {}
     });
 
-    // Tangkap dari jaringan biasa
+    // Tangkap dari jalur jaringan biasa
     page.on('request', request => {
       if (done) return;
       const url = request.url();
@@ -172,6 +163,7 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
   return m3u8Url;
 }
 
+// ─── PROSES EKSEKUSI PARALEL ──────────────────────────────────────────────────
 async function processBatch(browser, tasks) {
   const results = new Array(tasks.length).fill(null);
   for (let i = 0; i < tasks.length; i += CONCURRENCY) {
@@ -183,8 +175,9 @@ async function processBatch(browser, tasks) {
   return results;
 }
 
+// ─── MAIN PROGRAM ─────────────────────────────────────────────────────────────
 async function main() {
-  console.log('🚀 Stream Resolver (Direct Parser Edition) starting...');
+  console.log('🚀 Stream Resolver (Ultimate Browser Parser Edition) starting...');
   const sourceData = await fetchJson(SOURCE_JSON_URL);
   
   let liveMatches = sourceData.filter(m => (m['Match Status'] || '').toLowerCase().includes('live') && Array.isArray(m['Streams']));
