@@ -1,7 +1,6 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 
-// KAMUS PINTAR: Pemetaan Nama Channel -> Kode Slug Internal Cubmu
 const slugMap = {
     "trans tv": "TransTV",
     "trans 7": "TRANS7-my",
@@ -66,31 +65,37 @@ const slugMap = {
     "tvri sport": "TVRI Sport"
 };
 
-// Fungsi untuk merapikan nama (Hapus "live-tv-" dan Kapitalisasi Huruf Pertama)
 function cleanChannelName(rawName) {
     if (!rawName) return "";
     let clean = rawName.toLowerCase().replace(/^live-tv-/i, '').trim();
-    // Ubah huruf pertama setiap kata menjadi kapital (Contoh: "cnn indonesia" -> "Cnn Indonesia")
     clean = clean.replace(/\b\w/g, char => char.toUpperCase());
-    // Pengecualian khusus (karena CNN lebih bagus kapital semua)
     clean = clean.replace(/Cnn/g, 'CNN').replace(/Cnbc/g, 'CNBC').replace(/Tv/g, 'TV');
     return clean;
 }
 
 (async () => {
-    console.log("🚀 Memulai ekstraksi daftar channel Cubmu dengan Kamus Pintar...");
+    console.log("🚀 Memulai ekstraksi daftar channel Cubmu dengan Autoplay Bypass...");
     
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ 
+        headless: true,
+        args: [
+            '--autoplay-policy=no-user-gesture-required',
+            '--mute-audio',
+            '--disable-web-security'
+        ]
+    });
+    
     const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        viewport: { width: 1280, height: 720 }
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
     });
     const page = await context.newPage();
 
     let allChannels = [];
-    let cdnToken = "riutx01-a823b93f0d45cabb0fba0e57ca612f86";
+    
+    // Template Default yang sudah kadaluarsa (hanya sebagai cadangan jika sistem benar-benar gagal)
+    let mpdTemplate = "https://cdnjktcyber05.transvision.co.id/riutx01-a823b93f0d45cabb0fba0e57ca612f86/dash/BASE64_SLUG/manifest.mpd";
+    let tokenDitemukan = false;
 
-    // Mencegat API Cubmu
     page.on('response', async (response) => {
         const url = response.url();
         if (url.includes('transvision.co.id/global/v')) {
@@ -101,10 +106,14 @@ function cleanChannelName(rawName) {
                 }
             } catch (e) {}
         }
-        if (url.includes('.mpd') && url.includes('riutx01')) {
-            const match = url.match(/(riutx01-[^\/]+)/);
-            if (match) {
-                cdnToken = match[1];
+        
+        // Tangkap URL manifest.mpd ATAU live.mpd dari CDN Cubmu yang baru maupun lama
+        if ((url.includes('.mpd')) && (url.includes('dash/'))) {
+            if (!tokenDitemukan) {
+                console.log(`\n✅ TOKEN BARU DITEMUKAN: ${url}`);
+                // Ganti bagian slug unik di tengah dengan BASE64_SLUG agar bisa didaur ulang untuk semua channel
+                mpdTemplate = url.replace(/\/dash\/[^\/]+\//, '/dash/BASE64_SLUG/');
+                tokenDitemukan = true;
             }
         }
     });
@@ -117,7 +126,6 @@ function cleanChannelName(rawName) {
         await page.waitForTimeout(1000);
     }
 
-    // FALLBACK: Membaca gambar dari layar jika API diblokir Cloudflare GitHub Actions
     if (allChannels.length === 0) {
         console.log("⚠️ API Kosong. Membaca paksa nama channel dari layar HTML...");
         const domChannels = await page.$$eval('img', imgs => {
@@ -130,15 +138,19 @@ function cleanChannelName(rawName) {
         allChannels.push(...domChannels);
     }
 
-    console.log("Membuka CNN Indonesia untuk mengambil token sesi terbaru...");
+    console.log("Membuka CNN Indonesia untuk mengambil token streaming...");
     try {
-        await page.goto('https://www.cubmu.com/live-tv/212/cnn-indonesia', { waitUntil: 'networkidle', timeout: 20000 });
-        await page.waitForTimeout(5000); 
+        await page.goto('https://www.cubmu.com/live-tv/212/cnn-indonesia', { waitUntil: 'networkidle', timeout: 30000 });
+        // Tunggu 10 detik agar player sempat merespon file .mpd
+        await page.waitForTimeout(10000); 
     } catch (e) {
-        console.log("   [Peringatan] Timeout saat memuat CNN, menggunakan token awal.");
+        console.log("   [Peringatan] Timeout saat memuat CNN, token mungkin gagal ditangkap.");
     }
 
-    // Bersihkan nama dari "live-tv-" dan hapus duplikat
+    if (!tokenDitemukan) {
+        console.log("❌ GAGAL MENANGKAP TOKEN BARU. Playlist akan menggunakan template lama yang kadaluarsa.");
+    }
+
     let uniqueChannels = [];
     let seen = new Set();
 
@@ -157,38 +169,30 @@ function cleanChannelName(rawName) {
         }
     });
 
-    console.log(`\n✅ Berhasil mendapatkan ${uniqueChannels.length} channel unik!`);
-
-    if (uniqueChannels.length === 0) {
-        console.log("❌ Gagal. Proses dibatalkan.");
-        await browser.close();
-        return;
-    }
+    console.log(`\nMenulis ${uniqueChannels.length} channel ke file m3u...`);
 
     let playlist = "#EXTM3U\n\n";
     const CLEAR_KEY = "6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9";
 
     uniqueChannels.forEach(ch => {
-        // 1. Cari kode rahasia di Kamus Pintar berdasarkan nama
         let streamSlug = slugMap[ch.rawSearchKey];
-        
-        // 2. Jika channel benar-benar BARU & tidak ada di kamus, kita coba gunakan namanya langsung
         if (!streamSlug) {
             streamSlug = ch.name;
         }
 
-        // 3. Konversi ke Base64 (Karena format m3u8 Transvision mensyaratkan Base64)
         const base64Slug = Buffer.from(streamSlug).toString('base64').replace(/=+$/, '');
+        // Pasang base64Slug ke template MPD yang kita tangkap
+        const finalUrl = mpdTemplate.replace('BASE64_SLUG', base64Slug);
 
         playlist += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
         playlist += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
         playlist += `#KODIPROP:inputstream.adaptive.license_type=org.w3.clearkey\n`;
         playlist += `#KODIPROP:inputstream.adaptive.license_key=${CLEAR_KEY}\n`;
-        playlist += `https://cdnjktcyber05.transvision.co.id/${cdnToken}/dash/${base64Slug}/manifest.mpd\n\n`;
+        playlist += `${finalUrl}\n\n`;
     });
 
     fs.writeFileSync('cubmu.m3u', playlist);
-    console.log("🎉 SELESAI! cubmu.m3u berhasil ditulis ulang dengan rapi dan akurat.");
+    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token terbaru.");
 
     await browser.close();
 })();
