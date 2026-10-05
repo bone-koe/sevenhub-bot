@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 
+// KAMUS PINTAR YANG SUDAH DISEMPURNAKAN 100%
 const slugMap = {
     "trans tv": "TransTV",
     "trans 7": "TRANS7-my",
@@ -39,7 +40,6 @@ const slugMap = {
     "cinemax": "Cinemax",
     "warner tv hd": "Warner TV",
     "axn hd": "AXN-my",
-    "tvn movies": "TVN Movies",
     "celestial movies": "Celestial Movies",
     "bioskop indonesia": "Bioskop Indonesia",
     "thrill": "Thrill",
@@ -57,12 +57,30 @@ const slugMap = {
     "gaming tv": "Gaming TV",
     "dens food channel": "DENS Food Channel",
     "dens play channel": "DENS Play Channel",
-    "superyacht tv": "Superyacht TV",
-    "dens show bizz": "DENS ShowBizz",
     "knowledge+": "Knowledge+",
     "cgtn documentary": "CGTN Documentary",
     "!nsert": "insert-ch-scte35",
-    "tvri sport": "TVRI Sport"
+    "tvri sport": "TVRI Sport",
+
+    // PERBAIKAN TOTAL HASIL TEMUAN:
+    "al quran al kareem": "alquranalkareem",
+    "k+": "kpluschannel",
+    "cctv4": "CCTV 4",
+    "superyacht tv": "SuperYacht TV",
+    "dens show bizz": "DENS ShowBiz",
+    "abc australia": "ABC Australia",
+    "channel newsasia": "Channel NewsAsia",
+    "cgtn": "CGTN Channel",
+    "tvmu": "tv Mu Channel",
+    "tv9": "TV9 Channel",
+    "daystar": "Daystar Chnl",
+    "daai tv": "DAAI TV",
+    "spesial dunia lain": "Spesial Dunia Lain",
+
+    // SPESIAL FOLDER /dashx/
+    "tvn movies": { slug: "TVN Movies", path: "dashx" },
+    "tvn": { slug: "tvNChannel", path: "dashx" },
+    "nhk world premium": { slug: "NHK World Premium", path: "dashx" }
 };
 
 function cleanChannelName(rawName) {
@@ -92,8 +110,6 @@ function cleanChannelName(rawName) {
     const page = await context.newPage();
 
     let allChannels = [];
-    
-    // Fallback template lama 
     let mpdTemplate = "https://cdnjktcyber05.transvision.co.id/riutx01-a823b93f0d45cabb0fba0e57ca612f86/dash/BASE64_SLUG/manifest.mpd";
     let tokenDitemukan = false;
 
@@ -108,16 +124,11 @@ function cleanChannelName(rawName) {
             } catch (e) {}
         }
         
-        // Tangkap URL manifest.mpd ATAU live.mpd secara dinamis
         if ((url.includes('.mpd')) && (url.includes('dash/'))) {
             if (!tokenDitemukan) {
                 console.log(`\n✅ TOKEN BARU DITEMUKAN: ${url}`);
-                // 1. Ganti slug spesifik channel dengan placeholder BASE64_SLUG
                 let tempUrl = url.replace(/\/dash\/[^\/]+\//, '/dash/BASE64_SLUG/');
-                
-                // 2. HAPUS SIGNATURE: Buang semua karakter dari tanda '?' ke belakang
                 mpdTemplate = tempUrl.split('?')[0]; 
-                
                 console.log(`🧹 URL Bersih Tanpa Signature: ${mpdTemplate}`);
                 tokenDitemukan = true;
             }
@@ -127,7 +138,6 @@ function cleanChannelName(rawName) {
     console.log("Membuka halaman web utama Cubmu...");
     await page.goto('https://www.cubmu.com/live-tv', { waitUntil: 'networkidle', timeout: 30000 });
 
-    // Scroll untuk meload seluruh gambar channel
     for (let i = 0; i < 10; i++) {
         await page.mouse.wheel(0, 1000);
         await page.waitForTimeout(500);
@@ -147,7 +157,6 @@ function cleanChannelName(rawName) {
 
     console.log("Mencari tombol / gambar CNN Indonesia di layar untuk diklik...");
     try {
-        // Cari elemen gambar CNN Indonesia (menggunakan pencarian teks fleksibel)
         const cnnLocator = page.locator('img[alt*="cnn" i]').first();
         if (await cnnLocator.count() > 0) {
             await cnnLocator.scrollIntoViewIfNeeded();
@@ -189,17 +198,38 @@ function cleanChannelName(rawName) {
 
     console.log(`\nMenulis ${uniqueChannels.length} channel ke file m3u...`);
 
-    let playlist = "#EXTM3U\n\n";
+    // PERSIAPAN WAKTU WIB (Waktu Indonesia Barat)
+    const now = new Date();
+    const wibTime = new Intl.DateTimeFormat('id-ID', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+    }).format(now);
+
+    let playlist = "#EXTM3U\n";
+    playlist += `# LAST-UPDATED: ${wibTime} WIB\n\n`;
+
     const CLEAR_KEY = "6ffb9c53af284fd590217ede1eba765e:4abf1fd26e8c45a5b6bae60cf6ffc2b9";
 
     uniqueChannels.forEach(ch => {
         let streamSlug = slugMap[ch.rawSearchKey];
-        if (!streamSlug) {
+        let customPath = "dash"; // Bawaan standar
+
+        // Jika channel memakai folder khusus (dashx)
+        if (streamSlug && typeof streamSlug === 'object') {
+            customPath = streamSlug.path;
+            streamSlug = streamSlug.slug;
+        } else if (!streamSlug) {
             streamSlug = ch.name;
         }
 
         const base64Slug = Buffer.from(streamSlug).toString('base64').replace(/=+$/, '');
-        const finalUrl = mpdTemplate.replace('BASE64_SLUG', base64Slug);
+        
+        // Merakit URL akhir
+        let finalUrl = mpdTemplate.replace('BASE64_SLUG', base64Slug);
+        if (customPath === 'dashx') {
+            finalUrl = finalUrl.replace('/dash/', '/dashx/');
+        }
 
         playlist += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
         playlist += `#KODIPROP:inputstream.adaptive.stream_headers=User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64)&Origin=https://www.cubmu.com&Referer=https://www.cubmu.com/\n`;
@@ -208,11 +238,8 @@ function cleanChannelName(rawName) {
         playlist += `${finalUrl}\n\n`;
     });
 
-    // Beri komentar timestamp tersembunyi agar file M3U selalu terdeteksi "Berubah" oleh Git Commit
-    playlist += `\n# LAST-UPDATED: ${new Date().toISOString()}\n`;
-
     fs.writeFileSync('cubmu.m3u', playlist);
-    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token bersih (tanpa signature).");
+    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dan dipoles sempurna.");
 
     await browser.close();
 })();
