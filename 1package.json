@@ -1,0 +1,12 @@
+{
+  "name": "embed-stream-resolver",
+  "version": "1.0.0",
+  "description": "Playwright-based embed.st stream URL resolver for GitHub Actions",
+  "main": "scripts/resolve_streams.js",
+  "scripts": {
+    "resolve": "node scripts/resolve_streams.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
