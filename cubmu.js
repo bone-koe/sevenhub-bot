@@ -86,13 +86,14 @@ function cleanChannelName(rawName) {
     });
     
     const context = await browser.newContext({
-        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        viewport: { width: 1280, height: 720 }
     });
     const page = await context.newPage();
 
     let allChannels = [];
     
-    // Template Default yang sudah kadaluarsa (hanya sebagai cadangan jika sistem benar-benar gagal)
+    // Fallback template lama 
     let mpdTemplate = "https://cdnjktcyber05.transvision.co.id/riutx01-a823b93f0d45cabb0fba0e57ca612f86/dash/BASE64_SLUG/manifest.mpd";
     let tokenDitemukan = false;
 
@@ -107,11 +108,11 @@ function cleanChannelName(rawName) {
             } catch (e) {}
         }
         
-        // Tangkap URL manifest.mpd ATAU live.mpd dari CDN Cubmu yang baru maupun lama
+        // Tangkap URL manifest.mpd ATAU live.mpd secara dinamis
         if ((url.includes('.mpd')) && (url.includes('dash/'))) {
             if (!tokenDitemukan) {
                 console.log(`\n✅ TOKEN BARU DITEMUKAN: ${url}`);
-                // Ganti bagian slug unik di tengah dengan BASE64_SLUG agar bisa didaur ulang untuk semua channel
+                // Ganti slug spesifik channel dengan placeholder BASE64_SLUG
                 mpdTemplate = url.replace(/\/dash\/[^\/]+\//, '/dash/BASE64_SLUG/');
                 tokenDitemukan = true;
             }
@@ -121,9 +122,10 @@ function cleanChannelName(rawName) {
     console.log("Membuka halaman web utama Cubmu...");
     await page.goto('https://www.cubmu.com/live-tv', { waitUntil: 'networkidle', timeout: 30000 });
 
-    for (let i = 0; i < 20; i++) {
+    // Scroll untuk meload seluruh gambar channel
+    for (let i = 0; i < 10; i++) {
         await page.mouse.wheel(0, 1000);
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(500);
     }
 
     if (allChannels.length === 0) {
@@ -138,17 +140,28 @@ function cleanChannelName(rawName) {
         allChannels.push(...domChannels);
     }
 
-    console.log("Membuka CNN Indonesia untuk mengambil token streaming...");
+    console.log("Mencari tombol / gambar CNN Indonesia di layar untuk diklik...");
     try {
-        await page.goto('https://www.cubmu.com/live-tv/212/cnn-indonesia', { waitUntil: 'networkidle', timeout: 30000 });
-        // Tunggu 10 detik agar player sempat merespon file .mpd
-        await page.waitForTimeout(10000); 
+        // Cari elemen gambar CNN Indonesia (menggunakan pencarian teks fleksibel)
+        const cnnLocator = page.locator('img[alt*="cnn" i]').first();
+        if (await cnnLocator.count() > 0) {
+            await cnnLocator.scrollIntoViewIfNeeded();
+            await cnnLocator.click({ force: true });
+            console.log("✅ Berhasil mengklik CNN Indonesia. Menunggu pemutar video merespons (10 detik)...");
+            await page.waitForTimeout(10000); 
+        } else {
+            console.log("❌ Gambar CNN tidak ditemukan. Mencoba klik channel pertama secara acak...");
+            const firstCh = page.locator('img[alt*="live-tv-" i]').first();
+            await firstCh.scrollIntoViewIfNeeded();
+            await firstCh.click({ force: true });
+            await page.waitForTimeout(10000);
+        }
     } catch (e) {
-        console.log("   [Peringatan] Timeout saat memuat CNN, token mungkin gagal ditangkap.");
+        console.log("   [Peringatan] Gagal melakukan klik: ", e.message);
     }
 
     if (!tokenDitemukan) {
-        console.log("❌ GAGAL MENANGKAP TOKEN BARU. Playlist akan menggunakan template lama yang kadaluarsa.");
+        console.log("❌ GAGAL MENANGKAP TOKEN BARU. File tidak akan berubah secara signifikan.");
     }
 
     let uniqueChannels = [];
@@ -181,7 +194,6 @@ function cleanChannelName(rawName) {
         }
 
         const base64Slug = Buffer.from(streamSlug).toString('base64').replace(/=+$/, '');
-        // Pasang base64Slug ke template MPD yang kita tangkap
         const finalUrl = mpdTemplate.replace('BASE64_SLUG', base64Slug);
 
         playlist += `#EXTINF:-1 tvg-logo="${ch.logo}" group-title="${ch.group}", ${ch.name} [CUBMU]\n`;
@@ -191,8 +203,11 @@ function cleanChannelName(rawName) {
         playlist += `${finalUrl}\n\n`;
     });
 
+    // Beri komentar timestamp tersembunyi agar file M3U selalu terdeteksi "Berubah" oleh Git Commit
+    playlist += `\n# LAST-UPDATED: ${new Date().toISOString()}\n`;
+
     fs.writeFileSync('cubmu.m3u', playlist);
-    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token terbaru.");
+    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token dinamis.");
 
     await browser.close();
 })();
