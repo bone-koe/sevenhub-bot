@@ -1,0 +1,793 @@
+{
+  "updated_at": "2026-10-05T01:34:54.470Z",
+  "elapsed_seconds": 72.1,
+  "total_live": 18,
+  "total_streams": 65,
+  "resolved_ok": 65,
+  "resolved_failed": 0,
+  "matches": [
+    {
+      "title": "Nascar Cup Series 2026 - South Point 400",
+      "league": "Motor-sports",
+      "category": "Motor-sports",
+      "poster": "https://placehold.co/800x450/1a1a1a/ffffff.png?text=Nascar%20Cup%20Series%202026%20-%20South%20Point%20400&font=Oswald",
+      "start_time": "02:45 PM | 04-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live-event_nascar-cup-series-2026-south-point-400-live-stream/1",
+          "m3u8": "https://lb32.strmd.st/secure/ZOYTXPzidHXjnfTBYbcIIziPYlzUEwPJ/delta/stream/live-event_nascar-cup-series-2026-south-point-400-live-stream/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "NFL vs RedZone",
+      "league": "American-football",
+      "category": "American-football",
+      "poster": "https://placehold.co/800x450/1a1a1a/ffffff.png?text=NFL%20vs%20RedZone&font=Oswald",
+      "start_time": "11:00 PM | 04-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/-20261004/1",
+          "m3u8": "https://lb32.strmd.st/secure/SkgDhCPrjuWtKVkjmuxwIeIFqLwsLBmc/ingest/stream/streamednflredzone/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/-20261004/2",
+          "m3u8": "https://lb32.strmd.st/secure/qSarLZlbuYRJNRipEoAJRXphnZSiMZAv/ingest/stream/streamednflredzone/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Greece vs Germany",
+      "league": "Football",
+      "category": "Football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8VKdCTUZKENxB8QRqSF26IIROYLAtMfsNn0UYFSi6vy9LLPdNaYK5iohBAA.webp",
+      "start_time": "12:45 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - DAZN",
+          "quality": "HD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-greece-vs-germany/1",
+          "m3u8": "https://lb32.strmd.st/secure/PSniIqiAqnfbIVeNVqXssjXuhqAXnVpF/rtmp/stream/pp3jE_6Eer3sSo3ntSR4KQAWvbjBEGpe1MrJY-fqlCmiRUaBOH9MFS8PsDeJ7mQyGrT8gGeziQmP3A/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - DAZN",
+          "quality": "SD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-greece-vs-germany/2",
+          "m3u8": "https://lb8.strmd.st/secure/ZrqBNomuuiHkAOIHjEHddCmwvPCNcqoi/rtmp/stream/Th4UBo4dLHEi37PTXdtamn9TF8TEKKxomsYjp0eJrqbkFL6KPM0C-9TcEBfqN02j2h_pvB1FnHKiuFLu0Jo/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Netherlands vs Serbia",
+      "league": "Football",
+      "category": "Football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8VXiErAkCUCG4g+IY1JAozICCETmpBbRT7DZ9FGBUou78vSyzPTLRg7mKiEEA.webp",
+      "start_time": "12:45 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - DAZN",
+          "quality": "HD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-netherlands-vs-serbia/1",
+          "m3u8": "https://lb8.strmd.st/secure/MiBXUIdocEuYThWIOrHsyulgHYExNTpl/rtmp/stream/pUOA84Fn650GKp9MPsGBpcql0-Ku1-do7F4nyui0Y4azz8pjrY_U6WHiUf3bzm5VOye6L8gaxV6qmA/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - DAZN",
+          "quality": "SD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-netherlands-vs-serbia/2",
+          "m3u8": "https://lb8.strmd.st/secure/ghlBHhiafROWYyXZixdTpVjlCDDrkgGb/rtmp/stream/CBLltP_GnT3JUneglV0isJibX96SbMPE3n1nWeDmc0jGNaQzYDU53i1Sgp6Oqn10lGFptDipuOg14ZIN3I8/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Portugal vs Norway",
+      "league": "Football",
+      "category": "Football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8rGVja4Q8MFJDcQfECf0oQ5iDosmCwJBT7DZ9FGBUou78vU2jPTLRg7mKiEEA.webp",
+      "start_time": "12:45 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - DAZN",
+          "quality": "HD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-portugal-vs-norway/1",
+          "m3u8": "https://lb8.strmd.st/secure/LFTGGPNfVJZFmeMSZIMQbNxHHoYBrVyE/rtmp/stream/0brOQFhB7K3o4gzzdsojXEKksxLzKUUTeTSoMLprpN4W2J_A8HBpeqiPjUU221ATQUof1LNjHQndZQ/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - DAZN",
+          "quality": "SD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-portugal-vs-norway/2",
+          "m3u8": "https://lb8.strmd.st/secure/qOYbHwidLRnwzvVSdaSFkpkweWFwmqpC/rtmp/stream/21lR0JFy-q-V9an4I0Ulsl_muLHXFemYoTCrFsn2GvQ2WpMNmEVmztUvPbT0sQIsv251om-H4ldZ5fv5MAE/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Wales vs Denmark",
+      "league": "Football",
+      "category": "Football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8aENzCaYXWtw0g+IY1JAozICJZAwbBYEgp9hs+ijAqUXD+XpZZXky0YB5iohBAA.webp",
+      "start_time": "12:45 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - DAZN",
+          "quality": "HD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-wales-vs-denmark/1",
+          "m3u8": "https://lb8.strmd.st/secure/SJTqfQjWtBvpetwwTBJCmYpYrQwisgog/rtmp/stream/RT5D5wBRPUm-NLJU-iHSxq_s7bZYLvAbsJs6mP2ZaYK62SX-bR-Dm0pUrQllLx9IfjwKiICwfAseDg/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - DAZN",
+          "quality": "SD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-wales-vs-denmark/2",
+          "m3u8": "https://lb8.strmd.st/secure/VbIgDgsxPvjcQMZYMSWCyCyEUtUviXDX/rtmp/stream/ral4eWj5qnOHxFZGDUYNVuPj6W4LQPtSWnJto1kU2cqJbbTcfgixen_NBzjkrbDl2SGLg6j-6U7Y_EwZgfU/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Ireland vs Israel",
+      "league": "Football",
+      "category": "Football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8rFMCRgkwAAwgy3EEb4gzUkCksgINkDGMFNFPsNn0UYFRrZfy9LFkNJlowLzFRCCA.webp",
+      "start_time": "12:45 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - DAZN",
+          "quality": "HD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-republic-of-ireland-vs-israel/1",
+          "m3u8": "https://lb8.strmd.st/secure/LvVQKdhnkBrCfiYBwGqgvZLpQONdqTYC/rtmp/stream/X_Mr-qwsXYSiQPcxZOEkPXknxisxUIAQRbL2Ka0PqPbUIH_YagPEtFKvUiIIZDwLtz15kLjmDOFJkQ/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - DAZN",
+          "quality": "SD",
+          "language": "English - DAZN",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-republic-of-ireland-vs-israel/2",
+          "m3u8": "https://lb26.strmd.st/secure/mTQBjQsNQLyKhjTZNvTCOOrUMyMTevGU/rtmp/stream/_2-lU0-KaOETjvr_jZa0yWzHk2N2jHF_m5Sa6v4tvsLc4d57dhVv6aEyL71GWmrW7Qci1iAhNIC8Nf57Epw/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "2026 World Grand Prix | Day 7",
+      "league": "Darts",
+      "category": "Darts",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzuAQ1sFKBWSYAU2DFLABM8E9g1gDCFJMd46Tp51jwywYAE50ICCADGwCSClTg8UopBYQZRDRJydErNhAxgW1euPiQwy9asaU5CKDCCRTbPTCFgSXJPtDnVkdhZXsCRXJnGWUIIA.webp",
+      "start_time": "01:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - Sky Sports Main Event",
+          "quality": "HD",
+          "language": "English - Sky Sports Main Event",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-2026-world-grand-prix-day-7/1",
+          "m3u8": "https://lb26.strmd.st/secure/dthvazMBOaEHubIvHWyjQyuDfZDvyLkB/rtmp/stream/bax-I2ZZ2LDMY6-sp4uyCRjrQexchSgdWlTlNIq272fnlISXRz6gasFMue9hmrbBbHDDzw1Cd-vuAYyTkLOVvA/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - Sky Sports Main Event",
+          "quality": "SD",
+          "language": "English - Sky Sports Main Event",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-2026-world-grand-prix-day-7/2",
+          "m3u8": "https://lb26.strmd.st/secure/MZwcTrJFOLWjTUxUfCrcIypKOPIXpBlU/rtmp/stream/m3UPVDq5BRBsuFvHX7-1PxZJSmkczo86mdJE1OaTlAXxvzoi5glK6Vk2vAYYeGGv3cslrRNVsfFvZTZOhfHysILOyqQ/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Las Vegas Motor Speedway — The Chase - Race: South Point 400",
+      "league": "Motor-sports",
+      "category": "Motor-sports",
+      "poster": "https://placehold.co/800x450/1a1a1a/ffffff.png?text=Las%20Vegas%20Motor%20Speedway%20%E2%80%94%20The%20Chase%20-%20Race%3A%20South%20Point%20400&font=Oswald",
+      "start_time": "03:30 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 Main",
+          "quality": "HD",
+          "language": "Main",
+          "source": "hotel",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/1",
+          "m3u8": "https://lb26.strmd.st/secure/oPdlGMireBqASnysbmBqDrsxTkdhCjLP/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #2 International",
+          "quality": "HD",
+          "language": "International",
+          "source": "hotel",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/2",
+          "m3u8": "https://lb26.strmd.st/secure/EecuHDFYcxKYQTBoNxbqnonLWqBUTpzg/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/2/playlist.m3u8"
+        },
+        {
+          "label": "HD #3 NASCAR Chase Leaders Multiview",
+          "quality": "HD",
+          "language": "NASCAR Chase Leaders Multiview",
+          "source": "hotel",
+          "stream_no": 3,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/3",
+          "m3u8": "https://lb26.strmd.st/secure/WYqNDPJlykimyPqCDNLfTmijNlARTwEJ/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/3/playlist.m3u8"
+        },
+        {
+          "label": "HD #4 Featured Drivers Multiview",
+          "quality": "HD",
+          "language": "Featured Drivers Multiview",
+          "source": "hotel",
+          "stream_no": 4,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/4",
+          "m3u8": "https://lb26.strmd.st/secure/SYyZDwrjBknqmfbePJSCeUGnGHSeCsPL/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/4/playlist.m3u8"
+        },
+        {
+          "label": "HD #5 International (2)",
+          "quality": "HD",
+          "language": "International (2)",
+          "source": "hotel",
+          "stream_no": 5,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/5",
+          "m3u8": "https://lb26.strmd.st/secure/AsBldaZgqSGGCPeAYArZnXuALBuARyKE/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/5/playlist.m3u8"
+        },
+        {
+          "label": "HD #6 International (3)",
+          "quality": "HD",
+          "language": "International (3)",
+          "source": "hotel",
+          "stream_no": 6,
+          "embed_url": "https://embed.st/embed/hotel/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/6",
+          "m3u8": "https://lb13.strmd.st/secure/RLVVfnOZsCdPPbhmAiiEEQxQEaNEmLDI/hotel/stream/las-vegas-motor-speedway-the-chase-race-south-point-400-nascar-cup-series-1791149400/6/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "New York Rangers vs Utah Mammoth",
+      "league": "Hockey",
+      "category": "Hockey",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8VWtxAowSMCBAkQmviCkgYW81cRn4BYLpj9hs+tpUouYMvCJZZnky0YN5iohBAA.webp",
+      "start_time": "04:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/2000/1",
+          "m3u8": "https://lb13.strmd.st/secure/yXSjngoFmTVUUMTWtAOumZtNZLHwBxhP/ingest/stream/streamednewyorkrangers/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/2000/2",
+          "m3u8": "https://lb13.strmd.st/secure/KogEwHGsJLvYUfiBkwqlHBuFhTqzrMlN/ingest/stream/streamednewyorkrangers/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "2026 NASCAR Cup Series Playoff at Las Vegas",
+      "league": "Motor-sports",
+      "category": "Motor-sports",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEYgjAJgCwuADmBYBWRPh4xNsBTYMYRMAEzAE59dhTI0BjUFMTxCiyKBZgAhmHITmmZMFmk0fWe0UlcC2cBHBOrdGgJjMmMY1D0QcczRAiLdiHfYhnynLGbKN44oPosqUgLkZFhAA.webp",
+      "start_time": "04:30 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live-event_2026-nascar-cup-series-playoff-at-las-vegas-live-stream/1",
+          "m3u8": "https://lb13.strmd.st/secure/RhbUwgDjvJCizBLbWHtsCNhaYNHmsCNl/delta/stream/live-event_2026-nascar-cup-series-playoff-at-las-vegas-live-stream/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Denver Nuggets vs Utah Jazz",
+      "league": "Basketball",
+      "category": "Basketball",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8VbtCQUIuENxB8QJECl2IdUkFYlMtMfsNn0UYFSi6vy9LLPdNaYK5iohBAA.webp",
+      "start_time": "05:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - NBA TV",
+          "quality": "HD",
+          "language": "English - NBA TV",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-utah-jazz-vs-denver-nuggets/1",
+          "m3u8": "https://lb20.strmd.st/secure/JJZIztelSbqVSgOsMwDIbALyONJLTJmj/rtmp/stream/Mjjbuz_eNA3xUOUtSLCOtzAi4omnn2m9TT4bePNlBS4zcKt7Ute1PDHnsUz_gUjA1-h7L61Cppix-XnLGA0Cq_Tto5L648ZwFHcZHA/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - NBA TV",
+          "quality": "SD",
+          "language": "English - NBA TV",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-utah-jazz-vs-denver-nuggets/2",
+          "m3u8": "https://lb20.strmd.st/secure/fPRVxuEMTFTgoWmBxDGVKbXQICgwAxfJ/rtmp/stream/SfHUCQq4F_SwSV9qEF4cQ9AoJYagoGO5q-1e1yE6H-aHyc58emqLIy-hq0lkzUABmZoRniOqdZX29o7hGvQ10m6xBQ5bwlEZMKuXwWRD1_k/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nba-preseason_nuggets-jazz-live-streaming-659356416/1",
+          "m3u8": "https://lb20.strmd.st/secure/JtthuzWPobwEkJjOhDdmUjgSxmyNTupu/delta/stream/live_nba-preseason_nuggets-jazz-live-streaming-659356416/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/1812/1",
+          "m3u8": "https://lb20.strmd.st/secure/wTNbgIfSLbnTzoAuMOsifiWlLfBWYqjs/ingest/stream/streameddenvernuggets/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/1812/2",
+          "m3u8": "https://lb12.strmd.st/secure/WgnzcMPaLGWuNDPhUDKzxCuUmuALfoGJ/ingest/stream/streameddenvernuggets/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Los Angeles Clippers vs Golden State Warriors",
+      "league": "Basketball",
+      "category": "Basketball",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8VcODgCSIFCG4g+IHXpyJEIEDBDwCwJBT7DZ9FGBUou78vSyzPTLRg7mKiEEA.webp",
+      "start_time": "05:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - NBA League Pass",
+          "quality": "HD",
+          "language": "English - NBA League Pass",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-golden-state-warriors-vs-la-clippers/1",
+          "m3u8": "https://lb12.strmd.st/secure/xMKfkPAHalhQMjZJWaUjnXRkZpNzsPzP/rtmp/stream/SFy97lZk8sVbb-i2iiBRFcap7arSnKwbeRJDlEZjE9m6FxPBm3BTIy0iEVhg7qCHVK9o78i3yf_FUKEMRgoJRA/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - NBA League Pass",
+          "quality": "SD",
+          "language": "English - NBA League Pass",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-golden-state-warriors-vs-la-clippers/2",
+          "m3u8": "https://lb12.strmd.st/secure/CRHyPyPexmlCVEKccCKWpDJlarugeNhZ/rtmp/stream/lwYWB9nO3d_Ix3pLkEDjvfq-VMMgCWFR0C8AmUMOBhAwNE4q9Xcyvej3pz432TzXFYrziDWX77Cb0MKXYQPY4pX5irg/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nba-preseason_clippers-warriors-live-streaming-659356848/1",
+          "m3u8": "https://lb12.strmd.st/secure/obBDEInffRdVTcYWVnHoOrbkNrOzvWEd/delta/stream/live_nba-preseason_clippers-warriors-live-streaming-659356848/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/1813/1",
+          "m3u8": "https://lb4.strmd.st/secure/rrSStNvYJtTSrVsdozuUcxjzPlefzugD/ingest/stream/streamedlosangelesclippers/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/1813/2",
+          "m3u8": "https://lb4.strmd.st/secure/bxvxGCHpjivDFhajlvtBaaZjUUoPNxmK/ingest/stream/streamedlosangelesclippers/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Los Angeles Dodgers vs Atlanta Braves",
+      "league": "Baseball",
+      "category": "Baseball",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAY29lBWSUYAUwVmDTAE5p5gJhqDh61hh1OPgBDYLKQRcOJBt15cyAE1LBCETI3BiOzNCBTBZ+YElZgUIXiCybjIGObMnEi3UgpYRcxijCqtHD+UbU5Wrr0YB7iYhBAA.webp",
+      "start_time": "06:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - FS1",
+          "quality": "HD",
+          "language": "English - FS1",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-atlanta-braves-vs-los-angeles-dodgers/1",
+          "m3u8": "https://lb4.strmd.st/secure/JwgrKePjOdkpfmJMMdTkCowzOGUWsAak/rtmp/stream/6-dGsGfBeYKRJu1aNfpS3j_jJZbdyfRhzynk2JhIZWBjNFXS63cqsIEXc5Au1IC_U8IDmiqQHi_IiPcYWhk49hwQhg/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - FS1",
+          "quality": "SD",
+          "language": "English - FS1",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-atlanta-braves-vs-los-angeles-dodgers/2",
+          "m3u8": "https://lb4.strmd.st/secure/TVXyYyrZPvRBXehtyUkCuCKqygohxRvO/rtmp/stream/NY7c-PltW2WMehYipOcBtrnCbyDnXY2u3FTqSx_3ZB4uzxtml4nLW6iDAvnMRSds1D2cNxGli1c__NXjAJG_36hfyYbQlvI/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_mlb-playoffs_dodgers-braves-live-streaming-663806448/1",
+          "m3u8": "https://lb4.strmd.st/secure/dfHHRtuMpBaHUXHawImVvsUHhgJUXweV/delta/stream/live_mlb-playoffs_dodgers-braves-live-streaming-663806448/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #2 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/delta/live_mlb-playoffs_dodgers-braves-live-streaming-663806448/2",
+          "m3u8": "https://lb4.strmd.st/secure/ApnFqFCnCjNefBWjKfgrtNMXgiDeybBm/delta/stream/live_mlb-playoffs_dodgers-braves-live-streaming-663806448/2/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/2020/1",
+          "m3u8": "https://lb4.strmd.st/secure/yJVwcaNHLOAJBaIhbCrSwNjpLkqUaHLH/ingest/stream/streamedlosangelesdodgers/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/2020/2",
+          "m3u8": "https://lb4.strmd.st/secure/dClDEaqKPMXtjfBxpSXdumUpgFTHAiBr/ingest/stream/streamedlosangelesdodgers/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 Main",
+          "quality": "HD",
+          "language": "Main",
+          "source": "hotel",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/hotel/atlanta-braves-vs-los-angeles-dodgers-mlb-1791158400/1",
+          "m3u8": "https://lb2.strmd.st/secure/rDYSlIeCtSgnSMhBiSiYpsJRWLRptXYU/hotel/stream/atlanta-braves-vs-los-angeles-dodgers-mlb-1791158400/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Anaheim Ducks vs Florida Panthers",
+      "league": "Hockey",
+      "category": "Hockey",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8rRCRArgSHSG4g+IKSBghzKEJZOIUBHRT7DZ9FGBUou78vSyzPTLRg7mKiEEA.webp",
+      "start_time": "06:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - KCOP",
+          "quality": "HD",
+          "language": "English - KCOP",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-florida-panthers-vs-anaheim-ducks/1",
+          "m3u8": "https://lb2.strmd.st/secure/cukbUhyVofAhzSuNhiejWkiKuuWDdvmr/rtmp/stream/JH-P8mmGSXJDAEt4_EmXVoYx0I7NXXf7uG9oVs1E7puqMLdT1jlfS9lsGbrjXi8owpMX8mvLx9Hpy75jBOc/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - KCOP",
+          "quality": "SD",
+          "language": "English - KCOP",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-florida-panthers-vs-anaheim-ducks/2",
+          "m3u8": "https://lb2.strmd.st/secure/qCDwCBpqcJUCEdroepRJYVuBbHJBqNSZ/rtmp/stream/eesgpVpb52lXduxI1RG7MUBBGKokoWK4l9JoQH9pkOEXsrj01o_CQdUOlbqs_4bVHLXEPCLJtOuW9kvYM9s7laRj/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nhl_ducks-panthers-live-streaming-653789664/1",
+          "m3u8": "https://lb2.strmd.st/secure/vCBamgtAzqpDMPNwrNVsFBosTHDfeiuh/delta/stream/live_nhl_ducks-panthers-live-streaming-653789664/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/2001/1",
+          "m3u8": "https://lb23.strmd.st/secure/LgRHSYTVSCQfADksPvcLGAECCYzEAFvP/ingest/stream/streamedmanheimducks/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/2001/2",
+          "m3u8": "https://lb23.strmd.st/secure/OvaOAWkVhqDNltKYgFpLqcvwfmCRkwRB/ingest/stream/streamedmanheimducks/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Seattle Kraken vs Calgary Flames",
+      "league": "Hockey",
+      "category": "Hockey",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8rEiBANsmndxB8QUkDBAoTIfcfONgSCn2Gz6KMCpRc35ellkemtGBuYqIQQA.webp",
+      "start_time": "06:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - KONG",
+          "quality": "HD",
+          "language": "English - KONG",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-calgary-flames-vs-seattle-kraken/1",
+          "m3u8": "https://lb23.strmd.st/secure/DqGwsQEAskpvqmbewambsKOIdyjctVLi/rtmp/stream/cLfc1zBKv9EXziVay7O4hxiGMaBINaSh0DyLzResBmd0afrDrbs3NJA3BXuuA7Ki5Xm8TuIrgBC7OJ6I68KL/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - KONG",
+          "quality": "SD",
+          "language": "English - KONG",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-calgary-flames-vs-seattle-kraken/2",
+          "m3u8": "https://lb23.strmd.st/secure/biJeLOlAHyQcFdyVrxuzmlpGcPsMePad/rtmp/stream/96LBHT3Ytx4NHwLTxFxuGe5oAdgIVD3wi0v3RIOqLuymAaO84VJQh8biArqO-b2i7WE572JY7jCWBsrymPiRkWJFpw/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nhl_kraken-flames-live-streaming-653790096/1",
+          "m3u8": "https://lb23.strmd.st/secure/eDcUwPUgRWkQilxoSbQomAwTgXtJlztV/delta/stream/live_nhl_kraken-flames-live-streaming-653790096/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/2002/1",
+          "m3u8": "https://lb23.strmd.st/secure/MTQTdfwPxBqGChutAikuKXQQWLifnmFw/ingest/stream/streamedseattlekraken/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/2002/2",
+          "m3u8": "https://lb23.strmd.st/secure/BXBzkNnlrhPeVSIkeKiaZigHTkGMCdfq/ingest/stream/streamedseattlekraken/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Carolina Panthers vs Detroit Lions",
+      "league": "American-football",
+      "category": "American-football",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8aEHG4bcYJPxBa+IYxBBGSIFGcsgFTJBT7DZ9FGBUou78vSyzPTLRg7mKiEEA.webp",
+      "start_time": "06:20 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - Peacock",
+          "quality": "HD",
+          "language": "English - Peacock",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-detroit-lions-at-carolina-panthers/1",
+          "m3u8": "https://lb23.strmd.st/secure/uneYNSisLrhFnSmGQofjKYMdZvzBlsIE/rtmp/stream/jH24YuIhiJdasj4gRN0HzHO27ihj_Yi29g_tOFADtVCMmtmMO0_kI7UrQdSCNc95OupjRaNplXj9Nf-v39BumbCf/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - Peacock",
+          "quality": "SD",
+          "language": "English - Peacock",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-detroit-lions-at-carolina-panthers/2",
+          "m3u8": "https://lb30.strmd.st/secure/FzKenUqBVcfbtwDRDyvddkIlygtzCZWT/rtmp/stream/p-KnceOI-y8sBWaRb_GZcxGykRRTISVcexnHHlknoHMTHbU9kaO1AuxUDy_OwgdbSFayX_0lwuoshzTr2Zv0pEB-ltSaig/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nfl_panthers-lions-live-streaming-663785280/1",
+          "m3u8": "https://lb30.strmd.st/secure/aKbMlMjGhbAkghstogwDwywmYnRojocK/delta/stream/live_nfl_panthers-lions-live-streaming-663785280/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #2 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/delta/live_nfl_panthers-lions-live-streaming-663785280/2",
+          "m3u8": "https://lb30.strmd.st/secure/YQXzHgvngXBPjwqngeZJmFxaadykxNSh/delta/stream/live_nfl_panthers-lions-live-streaming-663785280/2/playlist.m3u8"
+        },
+        {
+          "label": "HD #3 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 3,
+          "embed_url": "https://embed.st/embed/delta/live_nfl_panthers-lions-live-streaming-663785280/3",
+          "m3u8": "https://lb30.strmd.st/secure/xShkMmrnfrvCNlSAoAEKrUajzfUTUSdX/delta/stream/live_nfl_panthers-lions-live-streaming-663785280/3/playlist.m3u8"
+        },
+        {
+          "label": "HD #4 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 4,
+          "embed_url": "https://embed.st/embed/delta/live_nfl_panthers-lions-live-streaming-663785280/4",
+          "m3u8": "https://lb5.strmd.st/secure/tyGkdMERKeqhwMwgWCInEjjZUQeVBZXM/delta/stream/live_nfl_panthers-lions-live-streaming-663785280/4/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/1920/1",
+          "m3u8": "https://lb5.strmd.st/secure/bcyFNLgsyNseTTlOdMbEBqjBYxPnRlbR/ingest/stream/streamedcarolinapanthers/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/1920/2",
+          "m3u8": "https://lb5.strmd.st/secure/SLIHfnXjWNqwdnQudGpsGycWGnBPINwA/ingest/stream/streamedcarolinapanthers/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 Main",
+          "quality": "HD",
+          "language": "Main",
+          "source": "hotel",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/hotel/detroit-lions-vs-carolina-panthers-nfl-1791159600/1",
+          "m3u8": "https://lb5.strmd.st/secure/xTEoiRBUYPmGlRmBJioivvJxCWUvUrAY/hotel/stream/detroit-lions-vs-carolina-panthers-nfl-1791159600/1/playlist.m3u8"
+        }
+      ]
+    },
+    {
+      "title": "Vancouver Canucks vs Vegas Golden Knights",
+      "league": "Hockey",
+      "category": "Hockey",
+      "poster": "https://streamed.pk/api/images/proxy/GwZg7AZpYEZgHCAjAJgCzrAThFlBWSUYAUwVmDW2nmAmD32FrWGHXbeAENgBjUgg5sSdTtw5kAJqWCEImeuFFs8aEFLBSQKYmDB8Q3EIe0wdIc8e3GUBYEgp9hs+ijArdbD+XpZZuky0+qL0oUA.webp",
+      "start_time": "07:00 AM | 05-Oct",
+      "status": "Live 🔴",
+      "has_stream": true,
+      "streams": [
+        {
+          "label": "HD #1 English - ESPN+",
+          "quality": "HD",
+          "language": "English - ESPN+",
+          "source": "admin",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/admin/ppv-vegas-golden-knights-vs-vancouver-canucks/1",
+          "m3u8": "https://lb14.strmd.st/secure/kSWeEBoiCWdCbJEIfowmZsqsvOZzVYER/rtmp/stream/rHOFhxTXj4QJTQE-tbD8hQyT8OOCOsJVsSBIUedaJbnQK7JMhbYTsOJMg2Gtk9BTRYxYcLrm8JHl3MM71e-J3v32/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English - ESPN+",
+          "quality": "SD",
+          "language": "English - ESPN+",
+          "source": "admin",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/admin/ppv-vegas-golden-knights-vs-vancouver-canucks/2",
+          "m3u8": "https://lb14.strmd.st/secure/jiQevrFbnICBEjUKDYGMDHovtiHMkLbD/rtmp/stream/tHD_r7iHUjuYjgSothp89uHHKcgGpVMsg7GS6YmcdRI0dfOTNkJIIGaXs9tnPeVhbFM-HWl9DXLG4d1Dq0EHw39NsE0oFA/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "delta",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/delta/live_nhl_canucks-golden-knights-live-streaming-653790528/1",
+          "m3u8": "https://lb14.strmd.st/secure/mNFMxkynZFLWHQtHBKlpsmnFjhBEawnc/delta/stream/live_nhl_canucks-golden-knights-live-streaming-653790528/1/playlist.m3u8"
+        },
+        {
+          "label": "HD #1 English",
+          "quality": "HD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 1,
+          "embed_url": "https://embed.st/embed/golf/2003/1",
+          "m3u8": "https://lb14.strmd.st/secure/aKdagtaTGpcRDCTjQyireJCupaGXhllZ/ingest/stream/streamedvancouvercanucks/1/playlist.m3u8"
+        },
+        {
+          "label": "SD #2 English",
+          "quality": "SD",
+          "language": "English",
+          "source": "golf",
+          "stream_no": 2,
+          "embed_url": "https://embed.st/embed/golf/2003/2",
+          "m3u8": "https://lb11.strmd.st/secure/yImHQwxaWWusznPPcSJWldbHiTvhiarT/ingest/stream/streamedvancouvercanucks/1/playlist.m3u8"
+        }
+      ]
+    }
+  ]
+}
