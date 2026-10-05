@@ -1,10 +1,10 @@
 /**
- * resolve_streams.js (V8 - Smart M3U8 Detection + Fixed Ad-Killer)
+ * resolve_streams.js (V9 - Master Playlist Parser Edition)
  * ─────────────────────────────────────────────────────────────────────────────
  * MABES ENTERPRISE - Playwright Stream Resolver
- * - Deteksi Cerdas: Menunggu URL varian asli tanpa hardcode "mono"
- * - Ad-Killer: Otomatis tutup popup iklan TANPA menutup halaman utama
- * - Time Filter: Abaikan match yang lewat > 12 jam.
+ * - Strategi Anti-Gagal: Membaca isi file playlist.m3u8 untuk mengekstrak 
+ *   URL varian asli tanpa harus berurusan dengan klik iklan atau video player.
+ * - Sesuai MOU: Cepat, stabil, tanpa tebakan.
  * ─────────────────────────────────────────────────────────────────────────────
  */
 
@@ -16,7 +16,7 @@ const SOURCE_JSON_URL = 'https://raw.githubusercontent.com/srhady/data/refs/head
 const OUTPUT_FILE = 'resolved_streams.json';
 
 const CDN_REGEX = /strmd\.st|vipstreams\.in|streamed\.su|lb\d+\./;
-const PAGE_TIMEOUT_MS = 25000;
+const PAGE_TIMEOUT_MS = 20000;
 const CONCURRENCY     = 4;
 
 function fetchJson(url) {
@@ -42,10 +42,56 @@ function isMatchValid(timeStr) {
     const matchTime = new Date(dateString).getTime();
     if (isNaN(matchTime)) return true;
     
-    const ageHours = (Date.now() - matchTime) / 3600000;
-    return ageHours <= 12; 
+    return ((Date.now() - matchTime) / 3600000) <= 12; 
   } catch(e) { return true; }
 }
+
+// ─── FUNGSI CERDAS: Membaca isi playlist.m3u8 dan mengekstrak variannya ──────
+function extractVariantUrl(masterUrl) {
+  return new Promise((resolve) => {
+    const urlObj = new URL(masterUrl);
+    const options = {
+      hostname: urlObj.hostname,
+      path: urlObj.pathname + urlObj.search,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Referer': 'https://embed.st/',
+        'Origin': 'https://embed.st'
+      }
+    };
+
+    https.get(options, res => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          const lines = data.split('\n').map(l => l.trim()).filter(Boolean);
+          let variant = null;
+          
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].startsWith('#EXT-X-STREAM-INF')) {
+              const nextLine = lines[i+1];
+              if (nextLine && !nextLine.startsWith('#')) {
+                variant = nextLine;
+                break; // Ambil varian pertama (tertinggi)
+              }
+            }
+          }
+          
+          if (variant) {
+            const baseUrl = masterUrl.substring(0, masterUrl.lastIndexOf('/') + 1);
+            resolve(baseUrl + variant); // Mengembalikan .../1/high/mono.m3u8 dll
+          } else {
+            resolve(masterUrl); // Jika tidak ditemukan, kembalikan apa adanya
+          }
+        } catch (e) {
+          resolve(masterUrl);
+        }
+      });
+    }).on('error', () => resolve(masterUrl));
+  });
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 async function resolveEmbedUrl(browser, embedUrl, label) {
   if (!embedUrl) return null;
@@ -58,17 +104,11 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
       extraHTTPHeaders: { 'Referer': 'https://embed.st/', 'Origin': 'https://embed.st' }
     });
     
-    // 1. Buat halaman UTAMA terlebih dahulu
     page = await context.newPage();
-
-    // 2. Pasang penjaga: Jika ada halaman baru SELAIN halaman utama, itu iklan popup, TUTUP!
     context.on('page', newPage => { 
-      if (newPage !== page) {
-        newPage.close().catch(()=>{}); 
-      }
+      if (newPage !== page) newPage.close().catch(()=>{}); 
     });
     
-    // Blokir aset berat agar super cepat
     await page.route('**/*.{png,jpg,jpeg,gif,svg,woff,woff2,ttf}', route => {
       route.abort().catch(()=>{});
     });
@@ -79,45 +119,53 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
 
   const m3u8Url = await new Promise(resolveP => {
     let done = false;
-    let bestUrl = null;
-    let settleTimer = null;
-
-    const finish = (url) => { 
+    
+    // Fungsi penyelesaian yang membedah URL
+    const finish = async (url) => { 
       if (done) return; 
       done = true; 
       clearTimeout(timer); 
-      clearTimeout(settleTimer);
-      resolveP(url); 
+
+      if (url && url.includes('playlist.m3u8')) {
+        // Ekstrak variannya secara langsung!
+        const finalUrl = await extractVariantUrl(url);
+        console.log(`  ✅ [Parsed] ${label} → ${finalUrl.substring(0, 60)}...`);
+        resolveP(finalUrl);
+      } else {
+        console.log(`  ✅ [Direct] ${label} → ${(url || '').substring(0, 60)}...`);
+        resolveP(url); 
+      }
     };
 
     const timer = setTimeout(() => { 
       console.log(`  ⏱️ Timeout: ${label}`); 
-      finish(bestUrl || null); 
+      finish(null); 
     }, PAGE_TIMEOUT_MS);
 
-    // LOGIKA CERDAS: Pantau Jaringan
+    // Tangkap dari respons otentikasi (Sangat Cepat)
+    page.on('response', async response => {
+      if (done) return;
+      try {
+        const url = response.url();
+        if (url.includes('parklogic.com') || url.includes('router.')) {
+          const text = await response.text().catch(() => '');
+          if (text.startsWith('http') && CDN_REGEX.test(text)) {
+            finish(text.trim());
+          }
+        }
+      } catch {}
+    });
+
+    // Tangkap dari jaringan biasa
     page.on('request', request => {
       if (done) return;
       const url = request.url();
-      
       if (url.includes('.m3u8') && CDN_REGEX.test(url)) {
-        bestUrl = url;
-        
-        // Reset timer 3 detik. Jika tidak ada m3u8 baru dalam 3 detik, 
-        // kita ambil URL ini sebagai hasil final.
-        clearTimeout(settleTimer);
-        settleTimer = setTimeout(() => {
-          console.log(`  ✅ [Smart-Detect] ${label} → ${bestUrl.substring(0, 60)}...`);
-          finish(bestUrl);
-        }, 3000);
+        finish(url);
       }
     });
 
-    // Jalankan halaman
-    page.goto(embedUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TIMEOUT_MS }).then(async () => {
-      // Pancing player agar berjalan
-      try { await page.mouse.click(400, 300); } catch(e) {}
-    }).catch(() => {});
+    page.goto(embedUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TIMEOUT_MS }).catch(() => {});
   });
 
   await context.close().catch(()=>{});
@@ -136,7 +184,7 @@ async function processBatch(browser, tasks) {
 }
 
 async function main() {
-  console.log('🚀 Stream Resolver (Smart Detect & Fixed Ad-Killer) starting...');
+  console.log('🚀 Stream Resolver (Direct Parser Edition) starting...');
   const sourceData = await fetchJson(SOURCE_JSON_URL);
   
   let liveMatches = sourceData.filter(m => (m['Match Status'] || '').toLowerCase().includes('live') && Array.isArray(m['Streams']));
@@ -148,16 +196,9 @@ async function main() {
     match: m, stream: s, embedUrl: s['Embed_URL'], label: `[${m['Match Title']}] ${s['Quality']||''}`
   })));
 
-  // Argumen browser lengkap untuk Bypass, Autoplay, dan stabilitas server
   const browser = await chromium.launch({ 
     headless: true, 
-    args: [
-      '--no-sandbox', 
-      '--disable-setuid-sandbox',
-      '--disable-gpu',
-      '--autoplay-policy=no-user-gesture-required',
-      '--mute-audio'
-    ] 
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'] 
   });
   
   const startTime = Date.now();
