@@ -76,6 +76,7 @@ const slugMap = {
     "daystar": "Daystar Chnl",
     "daai tv": "DAAI TV",
     "spesial dunia lain": "Spesial Dunia Lain",
+    "hope channel": "HopeChannel",
 
     // SPESIAL FOLDER /dashx/
     "tvn movies": { slug: "TVN Movies", path: "dashx" },
