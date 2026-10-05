@@ -1,21 +1,15 @@
 name: Resolve Stream URLs
 
 on:
-  # Dipanggil oleh layanan cron eksternal (cron-job.org, easycron, dll)
-  # via GitHub API: POST /repos/{owner}/{repo}/actions/workflows/resolve_streams.yml/dispatches
   workflow_dispatch:
 
-  # Backup: jadwal bawaan GitHub (opsional, aktifkan jika tidak pakai cron eksternal)
-  # schedule:
-  #   - cron: '*/10 * * * *'   # setiap 10 menit (perhatikan kuota GitHub Actions)
-
 permissions:
-  contents: write   # diperlukan untuk commit dan push resolved_streams.json
+  contents: write
 
 jobs:
   resolve:
     runs-on: ubuntu-latest
-    timeout-minutes: 12   # batas keamanan agar tidak memakan terlalu banyak menit Actions
+    timeout-minutes: 12
 
     steps:
       - name: Checkout repo
@@ -27,7 +21,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          # Baris "cache: 'npm'" dihapus di sini agar tidak error mencari package-lock.json
 
       - name: Install npm dependencies
         run: npm install
@@ -38,7 +32,6 @@ jobs:
       - name: Run stream resolver
         run: node scripts/resolve_streams.js
         env:
-          # Opsional: set GITHUB_TOKEN jika butuh autentikasi saat fetch raw GitHub
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Commit & push resolved_streams.json
