@@ -1,7 +1,5 @@
 /**
- * resolve_streams.js
- * ─────────────────────────────────────────────────────────────────────────────
- * Playwright-based resolver untuk embed.st stream URLs.
+ * resolve_streams.js (V3.1 - Force Capture mono.m3u8)
  */
 
 const { chromium } = require('playwright');
@@ -17,21 +15,11 @@ const CONCURRENCY     = 4;
 
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; StreamResolver/1.0)',
-        'Accept': 'application/json'
-      }
-    }, res => {
-      if (res.statusCode === 301 || res.statusCode === 302) {
-        return resolve(fetchJson(res.headers.location));
-      }
+    https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+      if (res.statusCode === 301 || res.statusCode === 302) return resolve(fetchJson(res.headers.location));
       let data = '';
       res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)); }
-        catch (e) { reject(new Error(`JSON parse error: ${e.message}`)); }
-      });
+      res.on('end', () => resolve(JSON.parse(data)));
     }).on('error', reject);
   });
 }
@@ -39,10 +27,7 @@ function fetchJson(url) {
 async function resolveEmbedUrl(browser, embedUrl, label) {
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-    extraHTTPHeaders: {
-      'Referer': 'https://embed.st/',
-      'Origin': 'https://embed.st'
-    },
+    extraHTTPHeaders: { 'Referer': 'https://embed.st/', 'Origin': 'https://embed.st' },
     serviceWorkers: 'block'
   });
 
@@ -51,52 +36,20 @@ async function resolveEmbedUrl(browser, embedUrl, label) {
 
   const m3u8Url = await new Promise(resolveP => {
     let done = false;
-    const finish = (url) => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      resolveP(url || null);
-    };
-
-    const timer = setTimeout(() => {
-      console.log(`  ⏱️  Timeout (${PAGE_TIMEOUT_MS}ms): ${label}`);
-      finish(null);
-    }, PAGE_TIMEOUT_MS);
-
-    page.on('response', async response => {
-      if (done) return;
-      try {
-        const url = response.url();
-        if (url.includes('parklogic.com') || url.includes('router.')) {
-          const text = await response.text().catch(() => '');
-          if (text.startsWith('http') && (CDN_REGEX.test(text) || text.includes('.m3u8'))) {
-            console.log(`  ✅ [parklogic] ${label} → ${text.substring(0, 60)}...`);
-            finish(text.trim());
-          }
-        }
-      } catch {}
-    });
+    const finish = (url) => { if (!done) { done = true; clearTimeout(timer); resolveP(url); } };
+    const timer = setTimeout(() => { console.log(`  ⏱️ Timeout: ${label}`); finish(null); }, PAGE_TIMEOUT_MS);
 
     page.on('request', request => {
       if (done) return;
       const url = request.url();
-      if ((url.includes('.m3u8') || url.includes('mono.m3u8')) && CDN_REGEX.test(url)) {
-        console.log(`  ✅ [request] ${label} → ${url.substring(0, 60)}...`);
+      // HANYA tangkap jika URL mengandung 'mono.m3u8' (resolusi akhir)
+      if (url.includes('mono.m3u8') && CDN_REGEX.test(url)) {
+        console.log(`  ✅ [mono] ${label} → ${url.substring(0, 60)}...`);
         finish(url);
       }
     });
 
-    page.on('framenavigated', frame => {
-      if (done || frame !== page.mainFrame()) return;
-      const url = frame.url();
-      if (url !== embedUrl && (url.includes('.m3u8') || CDN_REGEX.test(url))) {
-        console.log(`  ✅ [navigate] ${label} → ${url.substring(0, 60)}...`);
-        finish(url);
-      }
-    });
-
-    page.goto(embedUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TIMEOUT_MS })
-      .catch(e => { if (!done) console.log(`  ⚠️  Navigation error: ${e.message}`); });
+    page.goto(embedUrl, { waitUntil: 'domcontentloaded', timeout: PAGE_TIMEOUT_MS }).catch(() => {});
   });
 
   await context.close();
@@ -107,96 +60,52 @@ async function processBatch(browser, tasks) {
   const results = new Array(tasks.length).fill(null);
   for (let i = 0; i < tasks.length; i += CONCURRENCY) {
     const batch = tasks.slice(i, i + CONCURRENCY);
-    const settled = await Promise.allSettled(
-      batch.map(task => resolveEmbedUrl(browser, task.embedUrl, task.label))
-    );
-    settled.forEach((result, idx) => {
-      results[i + idx] = result.status === 'fulfilled' ? result.value : null;
-    });
+    const settled = await Promise.allSettled(batch.map(t => resolveEmbedUrl(browser, t.embedUrl, t.label)));
+    settled.forEach((r, idx) => { results[i + idx] = r.status === 'fulfilled' ? r.value : null; });
     if (i + CONCURRENCY < tasks.length) await new Promise(r => setTimeout(r, 1000));
   }
   return results;
 }
 
 async function main() {
-  console.log('🚀 Stream Resolver starting...');
+  console.log('🚀 Stream Resolver (mono.m3u8 edition) starting...');
   const sourceData = await fetchJson(SOURCE_JSON_URL);
-  const now = new Date().toISOString();
-
-  const liveMatches = sourceData.filter(m =>
-    (m['Match Status'] || '').toLowerCase().includes('live') &&
-    Array.isArray(m['Streams']) && m['Streams'].length > 0
-  );
-
+  const liveMatches = sourceData.filter(m => (m['Match Status'] || '').toLowerCase().includes('live') && m['Streams']);
   const tasks = [];
-  for (const match of liveMatches) {
-    for (const stream of match['Streams']) {
-      tasks.push({
-        match, stream,
-        embedUrl: stream['Embed_URL'],
-        label: `[${match['Match Title']}] ${stream['Language'] || ''} ${stream['Quality'] || ''}`
-      });
-    }
-  }
+  liveMatches.forEach(m => m['Streams'].forEach(s => tasks.push({
+    match: m, stream: s, embedUrl: s['Embed_URL'], label: `[${m['Match Title']}] ${s['Quality']}`
+  })));
 
+  // Tambahkan args agar video auto-play tanpa butuh interaksi user (supaya mono.m3u8 ter-load)
   const browser = await chromium.launch({
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--no-first-run', '--no-zygote']
+    args: ['--no-sandbox', '--autoplay-policy=no-user-gesture-required', '--mute-audio']
   });
 
   const startTime = Date.now();
-  let resolvedUrls;
-  try {
-    resolvedUrls = await processBatch(browser, tasks);
-  } finally {
-    await browser.close();
-  }
-  const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+  const resolvedUrls = await processBatch(browser, tasks);
+  await browser.close();
 
   const resolvedMatches = [];
   let taskIdx = 0;
-
   for (const match of liveMatches) {
     const streams = [];
     for (const stream of match['Streams']) {
       const m3u8 = resolvedUrls[taskIdx++];
-      streams.push({
-        label: `${stream['Quality'] || 'HD'} #${stream['Stream_No']} ${stream['Language'] || 'English'}`,
-        quality: stream['Quality'] || 'HD',
-        language: stream['Language'] || 'English',
-        source: stream['Source'] || '',
-        stream_no: stream['Stream_No'] || 1,
-        embed_url: stream['Embed_URL'] || '',
-        m3u8: m3u8 || null
-      });
+      streams.push({ ...stream, label: `${stream['Quality']} #${stream['Stream_No']}`, m3u8: m3u8 || null, q: stream['Quality'] });
     }
-
-    const hasResolved = streams.some(s => s.m3u8 !== null);
-    resolvedMatches.push({
-      title: match['Match Title'] || 'Unknown',
-      league: match['League'] || match['Category'] || 'Sports',
-      category: match['Category'] || 'Sports',
-      poster: match['Match Poster'] || '',
-      start_time: match['Start Time'] || '',
-      status: match['Match Status'] || 'Live 🔴',
-      has_stream: hasResolved,
-      streams
-    });
+    if (streams.some(s => s.m3u8)) {
+      resolvedMatches.push({ title: match['Match Title'], league: match['League'], poster: match['Match Poster'], start_time: match['Start Time'], streams });
+    }
   }
 
-  const totalResolved = resolvedUrls.filter(Boolean).length;
   const output = {
-    updated_at: now,
-    elapsed_seconds: parseFloat(elapsed),
-    total_live: liveMatches.length,
+    updated_at: new Date().toISOString(),
     total_streams: tasks.length,
-    resolved_ok: totalResolved,
-    resolved_failed: resolvedUrls.length - totalResolved,
+    resolved_ok: resolvedUrls.filter(Boolean).length,
     matches: resolvedMatches
   };
-
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2), 'utf8');
   console.log(`✅ Saved to ${OUTPUT_FILE}`);
 }
-
 main().catch(err => { console.error('💥 Fatal error:', err); process.exit(1); });
