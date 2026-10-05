@@ -112,8 +112,13 @@ function cleanChannelName(rawName) {
         if ((url.includes('.mpd')) && (url.includes('dash/'))) {
             if (!tokenDitemukan) {
                 console.log(`\n✅ TOKEN BARU DITEMUKAN: ${url}`);
-                // Ganti slug spesifik channel dengan placeholder BASE64_SLUG
-                mpdTemplate = url.replace(/\/dash\/[^\/]+\//, '/dash/BASE64_SLUG/');
+                // 1. Ganti slug spesifik channel dengan placeholder BASE64_SLUG
+                let tempUrl = url.replace(/\/dash\/[^\/]+\//, '/dash/BASE64_SLUG/');
+                
+                // 2. HAPUS SIGNATURE: Buang semua karakter dari tanda '?' ke belakang
+                mpdTemplate = tempUrl.split('?')[0]; 
+                
+                console.log(`🧹 URL Bersih Tanpa Signature: ${mpdTemplate}`);
                 tokenDitemukan = true;
             }
         }
@@ -207,7 +212,7 @@ function cleanChannelName(rawName) {
     playlist += `\n# LAST-UPDATED: ${new Date().toISOString()}\n`;
 
     fs.writeFileSync('cubmu.m3u', playlist);
-    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token dinamis.");
+    console.log("🎉 SELESAI! cubmu.m3u berhasil diperbarui dengan token bersih (tanpa signature).");
 
     await browser.close();
 })();
